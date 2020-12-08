@@ -3,7 +3,7 @@ Contributors: naa986
 Donate link: https://noorsplugin.com/
 Tags: paypal, checkout, e-commerce, ecommerce, sell
 Requires at least: 5.5
-Tested up to: 5.5
+Tested up to: 5.6
 Stable tag: 1.0.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -33,7 +33,9 @@ Checkout for PayPal supports PayPal Sandbox. PayPal Sandbox is a simulation envi
 * Compatible with any WordPress theme
 * Sell in any currency supported by PayPal
 
-= Usage =
+= How Does Checkout for PayPal Work? =
+
+https://www.youtube.com/watch?v=4zXq305htBA&rel=0
 
 Checkout for PayPal uses PayPal REST API to add smart payment buttons to your website. To Generate REST API credentials for the sandbox and live environments:
 
