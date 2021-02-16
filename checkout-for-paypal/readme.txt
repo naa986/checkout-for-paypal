@@ -4,7 +4,7 @@ Donate link: https://noorsplugin.com/
 Tags: paypal, checkout, e-commerce, ecommerce, sell
 Requires at least: 5.5
 Tested up to: 5.6
-Stable tag: 1.0.1
+Stable tag: 1.0.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -64,7 +64,6 @@ You can use additional parameters to customize your PayPal buttons.
 
 * **amount** - The price of the item (e.g. amount="4.95").
 * **item_description** - Description of the item.
-* **currency** - The currency of the payment (e.g. currency="USD").
 * **return_url** - The URL to which the user will be redirected after the payment (e.g. return_url="https://example.com/thank-you/").
 
 For detailed documentation please visit the [Checkout for PayPal Plugin](https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/) page.
@@ -99,6 +98,9 @@ Yes.
 none
 
 == Changelog ==
+
+= 1.0.2 =
+* Added fix for a PayPal bug where specifying a different currency would trigger an error.
 
 = 1.0.1 =
 * First commit

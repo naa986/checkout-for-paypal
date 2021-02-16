@@ -1,7 +1,7 @@
 <?php
 /*
   Plugin Name: Checkout for PayPal
-  Version: 1.0.1
+  Version: 1.0.2
   Plugin URI: https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/  
   Author: naa986
   Author URI: https://noorsplugin.com/
@@ -15,7 +15,7 @@ if (!defined('ABSPATH'))
 
 class CHECKOUT_FOR_PAYPAL {
     
-    var $plugin_version = '1.0.1';
+    var $plugin_version = '1.0.2';
     var $plugin_url;
     var $plugin_path;
     
@@ -79,8 +79,12 @@ class CHECKOUT_FOR_PAYPAL {
             global $post;
             if(is_a($post, 'WP_Post') && has_shortcode($post->post_content, 'checkout_for_paypal')){
                 $options = checkout_for_paypal_get_option();
+                $sdk_js_url = add_query_arg(array(
+                    'client-id' => $options['app_client_id'],
+                    'currency' => $options['currency_code'],
+                ), 'https://www.paypal.com/sdk/js');
                 wp_enqueue_script('jquery');
-                wp_register_script('checkout-for-paypal', 'https://www.paypal.com/sdk/js?client-id='.$options['app_client_id'], array('jquery'), null);
+                wp_register_script('checkout-for-paypal', $sdk_js_url, array('jquery'), null);
                 wp_enqueue_script('checkout-for-paypal');
             }        
         }
@@ -291,9 +295,11 @@ function checkout_for_paypal_button_handler($atts) {
     }
     $options = checkout_for_paypal_get_option();
     $currency = $options['currency_code'];
+    /* There seems to be a bug where currency override doesn't work on a per button basis
     if(isset($atts['currency']) && !empty($atts['currency'])){
         $currency = $atts['currency'];
     }
+    */
     $return_url = (isset($options['return_url']) && !empty($options['return_url'])) ? $options['return_url'] : '';
     if(isset($atts['return_url']) && !empty($atts['return_url'])){
         $return_url = $atts['return_url'];
