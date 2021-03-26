@@ -4,7 +4,7 @@ Donate link: https://noorsplugin.com/
 Tags: paypal, checkout, e-commerce, ecommerce, sell
 Requires at least: 5.5
 Tested up to: 5.7
-Stable tag: 1.0.2
+Stable tag: 1.0.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -65,6 +65,7 @@ You can use additional parameters to customize your PayPal buttons.
 * **amount** - The price of the item (e.g. amount="4.95").
 * **item_description** - Description of the item.
 * **return_url** - The URL to which the user will be redirected after the payment (e.g. return_url="https://example.com/thank-you/").
+* **no_shipping** - Do not prompt buyers for a shipping address (e.g. no_shipping="1").
 
 For detailed documentation please visit the [Checkout for PayPal Plugin](https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/) page.
 
@@ -98,6 +99,9 @@ Yes.
 none
 
 == Changelog ==
+
+= 1.0.3 =
+* Added the "no_shipping" parameter to disable shipping address collection.
 
 = 1.0.2 =
 * Added fix for a PayPal bug where specifying a different currency would trigger an error.
