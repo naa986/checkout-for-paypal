@@ -1,7 +1,7 @@
 <?php
 /*
   Plugin Name: Checkout for PayPal
-  Version: 1.0.3
+  Version: 1.0.4
   Plugin URI: https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/  
   Author: naa986
   Author URI: https://noorsplugin.com/
@@ -15,7 +15,7 @@ if (!defined('ABSPATH'))
 
 class CHECKOUT_FOR_PAYPAL {
     
-    var $plugin_version = '1.0.3';
+    var $plugin_version = '1.0.4';
     var $plugin_url;
     var $plugin_path;
     
@@ -77,7 +77,9 @@ class CHECKOUT_FOR_PAYPAL {
     function plugin_scripts() {
         if (!is_admin()) {
             global $post;
-            if(is_a($post, 'WP_Post') && has_shortcode($post->post_content, 'checkout_for_paypal')){
+            if(is_a($post, 'WP_Post')
+                    && has_shortcode($post->post_content, 'checkout_for_paypal')
+                        || has_shortcode(get_post_meta($post->ID, 'checkout-for-paypal-custom-field', true), 'checkout_for_paypal')){
                 $options = checkout_for_paypal_get_option();
                 $sdk_js_url = add_query_arg(array(
                     'client-id' => $options['app_client_id'],

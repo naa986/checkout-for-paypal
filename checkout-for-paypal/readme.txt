@@ -4,7 +4,7 @@ Donate link: https://noorsplugin.com/
 Tags: paypal, checkout, e-commerce, ecommerce, sell
 Requires at least: 5.5
 Tested up to: 5.7
-Stable tag: 1.0.3
+Stable tag: 1.0.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -99,6 +99,9 @@ Yes.
 none
 
 == Changelog ==
+
+= 1.0.4 =
+* The shortcode can be used in a custom field.
 
 = 1.0.3 =
 * Added the "no_shipping" parameter to disable shipping address collection.
