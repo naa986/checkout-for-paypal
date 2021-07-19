@@ -3,7 +3,7 @@ Contributors: naa986
 Donate link: https://noorsplugin.com/
 Tags: paypal, checkout, e-commerce, ecommerce, sell
 Requires at least: 5.5
-Tested up to: 5.7
+Tested up to: 5.8
 Stable tag: 1.0.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
