@@ -4,7 +4,7 @@ Donate link: https://noorsplugin.com/
 Tags: paypal, checkout, e-commerce, ecommerce, sell
 Requires at least: 5.5
 Tested up to: 5.8
-Stable tag: 1.0.5
+Stable tag: 1.0.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -67,6 +67,7 @@ You can use additional parameters to customize your PayPal buttons.
 * **return_url** - The URL to which the user will be redirected after the payment (e.g. return_url="https://example.com/thank-you/").
 * **no_shipping** - Do not prompt buyers for a shipping address (e.g. no_shipping="1").
 * **color** - The color of the PayPal button (e.g. color="blue"). Available colors: gold, blue, silver, white and black. The default is gold.
+* **width** - The width of the PayPal button (e.g. width="500"). The default is 300px.
 
 For detailed documentation please visit the [Checkout for PayPal Plugin](https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/) page.
 
@@ -100,6 +101,9 @@ Yes.
 none
 
 == Changelog ==
+
+= 1.0.6 =
+* Added the width parameter to customize the size of the PayPal button.
 
 = 1.0.5 =
 * Added the color parameter to customize the color of the PayPal button.

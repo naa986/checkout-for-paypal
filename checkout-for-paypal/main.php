@@ -1,7 +1,7 @@
 <?php
 /*
   Plugin Name: Checkout for PayPal
-  Version: 1.0.5
+  Version: 1.0.6
   Plugin URI: https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/  
   Author: naa986
   Author URI: https://noorsplugin.com/
@@ -15,7 +15,7 @@ if (!defined('ABSPATH'))
 
 class CHECKOUT_FOR_PAYPAL {
     
-    var $plugin_version = '1.0.5';
+    var $plugin_version = '1.0.6';
     var $plugin_url;
     var $plugin_path;
     
@@ -318,13 +318,17 @@ function checkout_for_paypal_button_handler($atts) {
         },        
 EOT;
     }
+    $width = '300';
+    if(isset($atts['width']) && !empty($atts['width'])){
+        $width = $atts['width'];
+    }
     $color = 'gold';
     if(isset($atts['color']) && !empty($atts['color'])){
         $color = $atts['color'];
     }
     $id = uniqid();
     $button_id = 'coforpaypal-button-'.$id;
-    $button_code = '<div id="'.$button_id.'" style="max-width: 300px;"></div>';
+    $button_code = '<div id="'.$button_id.'" style="max-width: '.esc_attr($width).'px;"></div>';
     $ajax_url = admin_url('admin-ajax.php');
     $button_code .= <<<EOT
     <script>
