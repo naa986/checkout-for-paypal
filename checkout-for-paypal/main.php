@@ -1,7 +1,7 @@
 <?php
 /*
   Plugin Name: Checkout for PayPal
-  Version: 1.0.6
+  Version: 1.0.7
   Plugin URI: https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/  
   Author: naa986
   Author URI: https://noorsplugin.com/
@@ -15,7 +15,7 @@ if (!defined('ABSPATH'))
 
 class CHECKOUT_FOR_PAYPAL {
     
-    var $plugin_version = '1.0.6';
+    var $plugin_version = '1.0.7';
     var $plugin_url;
     var $plugin_path;
     
@@ -83,7 +83,8 @@ class CHECKOUT_FOR_PAYPAL {
                 $options = checkout_for_paypal_get_option();
                 $sdk_js_url = add_query_arg(array(
                     'client-id' => $options['app_client_id'],
-                    'currency' => $options['currency_code'],
+                    'enable-funding' => 'venmo',
+                    'currency' => $options['currency_code'],                 
                 ), 'https://www.paypal.com/sdk/js');
                 wp_enqueue_script('jquery');
                 wp_register_script('checkout-for-paypal', $sdk_js_url, array('jquery'), null);

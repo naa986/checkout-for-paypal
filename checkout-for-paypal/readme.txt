@@ -4,7 +4,7 @@ Donate link: https://noorsplugin.com/
 Tags: paypal, checkout, e-commerce, ecommerce, sell
 Requires at least: 5.5
 Tested up to: 5.8
-Stable tag: 1.0.6
+Stable tag: 1.0.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -22,7 +22,7 @@ Checkout for PayPal supports PayPal Sandbox. PayPal Sandbox is a simulation envi
 
 * Sell products or services using PayPal
 * Create PayPal buttons on the fly in a post/page using shortcodes
-* Allow shoppers to complete their purchases using PayPal, Pay Later, credit card and debit card payments 
+* Allow shoppers to complete their purchases using PayPal, Pay Later, Venmo, credit card and debit card payments 
 * Accept once off payments
 * Offer a simplified and secure checkout experience
 * View or Manage orders received via PayPal buttons from your WordPress admin dashboard
@@ -101,6 +101,9 @@ Yes.
 none
 
 == Changelog ==
+
+= 1.0.7 =
+* Added Venmo as a payment option.
 
 = 1.0.6 =
 * Added the width parameter to customize the size of the PayPal button.
