@@ -1,7 +1,7 @@
 <?php
 /*
   Plugin Name: Checkout for PayPal
-  Version: 1.0.7
+  Version: 1.0.8
   Plugin URI: https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/  
   Author: naa986
   Author URI: https://noorsplugin.com/
@@ -15,7 +15,7 @@ if (!defined('ABSPATH'))
 
 class CHECKOUT_FOR_PAYPAL {
     
-    var $plugin_version = '1.0.7';
+    var $plugin_version = '1.0.8';
     var $plugin_url;
     var $plugin_path;
     
@@ -446,6 +446,10 @@ function checkout_for_paypal_ajax_process_order(){
     if (isset($payer['name']['surname'])) {
         $last_name = sanitize_text_field($payer['name']['surname']);
     }
+    $email = '';
+    if (isset($payer['email_address'])) {
+        $email = sanitize_email($payer['email_address']);
+    }
     $mc_gross = '';
     if (isset($purchase_units['amount']['value'])) {
         $mc_gross = sanitize_text_field($purchase_units['amount']['value']);
@@ -519,6 +523,7 @@ function checkout_for_paypal_ajax_process_order(){
         update_post_meta($post_id, '_txn_id', $txn_id);
         update_post_meta($post_id, '_first_name', $first_name);
         update_post_meta($post_id, '_last_name', $last_name);
+        update_post_meta($post_id, '_email', $email);
         update_post_meta($post_id, '_mc_gross', $mc_gross);
         update_post_meta($post_id, '_payment_status', $payment_status);
         checkout_for_paypal_debug_log("Order information updated", true);

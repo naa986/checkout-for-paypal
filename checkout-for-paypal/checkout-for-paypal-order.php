@@ -65,6 +65,7 @@ function checkout_for_paypal_order_columns($columns) {
         'txn_id' => __('Transaction ID', 'checkout-for-paypal'),
         'first_name' => __('First Name', 'checkout-for-paypal'),
         'last_name' => __('Last Name', 'checkout-for-paypal'),
+        'email' => __('Email', 'checkout-for-paypal'),
         'mc_gross' => __('Total', 'checkout-for-paypal'),
         'payment_status' => __('Payment Status', 'checkout-for-paypal'),
         'date' => __('Date', 'checkout-for-paypal')
@@ -85,6 +86,9 @@ function checkout_for_paypal_custom_column($column, $post_id) {
             break;
         case 'last_name' :
             echo get_post_meta($post_id, '_last_name', true);
+            break;
+        case 'email' :
+            echo get_post_meta($post_id, '_email', true);
             break;
         case 'mc_gross' :
             echo get_post_meta($post_id, '_mc_gross', true);
