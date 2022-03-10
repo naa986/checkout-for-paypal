@@ -4,7 +4,7 @@ Donate link: https://noorsplugin.com/
 Tags: paypal, checkout, e-commerce, ecommerce, sell
 Requires at least: 5.5
 Tested up to: 5.9
-Stable tag: 1.0.8
+Stable tag: 1.0.9
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -12,18 +12,20 @@ Easily accept PayPal payments in WordPress by adding PayPal smart payment button
 
 == Description ==
 
-[Checkout for PayPal](https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/) plugin allows you to easily create PayPal smart payment buttons using PayPal's checkout API. It generates dynamic payment buttons using shortcodes that enable PayPal checkout on your WordPress site.
+[Checkout for PayPal](https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/) plugin allows you to easily create PayPal smart payment buttons using PayPal's checkout API (previously known as PayPal Express Checkout). It generates dynamic payment buttons using shortcodes that enable PayPal checkout on your WordPress site.
 
 Your customers will be able to pay for your products using PayPal, Pay Later or Credit Card. All you need to do is insert a shortcode into one of your web pages and your website will be ready to go live.
 
 Checkout for PayPal supports PayPal Sandbox. PayPal Sandbox is a simulation environment which allows you to do test purchases between a test buyer and a seller account. This is to make sure that your store can process PayPal transactions without any issues. It also helps you get prepared before selling to real customers.
 
-= Features =
+=== Checkout for PayPal Features ===
 
 * Sell products or services using PayPal
 * Create PayPal buttons on the fly in a post/page using shortcodes
-* Allow shoppers to complete their purchases using PayPal, Pay Later, Venmo, credit card and debit card payments 
+* Smart Fast PayPal checkout
+* Allow shoppers to complete their purchases using PayPal, Pay Later, Pay in 4, Venmo, credit card and debit card payments 
 * Accept once off payments
+* Support Venmo checkout
 * Offer a simplified and secure checkout experience
 * View or Manage orders received via PayPal buttons from your WordPress admin dashboard
 * Quick settings configurations
@@ -31,13 +33,19 @@ Checkout for PayPal supports PayPal Sandbox. PayPal Sandbox is a simulation envi
 * Switch your store to PayPal sandbox mode for testing
 * Compatible with the latest version of WordPress
 * Compatible with any WordPress theme
+* Support PayPal guest checkout (PayPal checkout without an account)
 * Sell in any currency supported by PayPal
+* Let customers set the amount they will pay
 
-= How Does Checkout for PayPal Work? =
+=== Checkout for PayPal Extensions ===
+
+* [Variable Price](https://noorsplugin.com/how-to-add-a-price-field-to-a-paypal-button/)
+
+=== How to Use Checkout for PayPal ===
 
 https://www.youtube.com/watch?v=4zXq305htBA&rel=0
 
-Checkout for PayPal uses PayPal REST API to add smart payment buttons to your website. To Generate REST API credentials for the sandbox and live environments:
+[PayPal Checkout](https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/) plugin uses PayPal REST API to add smart payment buttons to your website. To Generate REST API credentials for the sandbox and live environments:
 
 * Log in to the PayPal Developer Dashboard with your PayPal account credentials.
 * On **My Apps & Credentials**, use the toggle to switch between live and sandbox testing apps (If you are creating a Sandbox app, you will also need to select a test business account that will act as the API caller).
@@ -52,13 +60,13 @@ Once the plugin is installed go to the settings menu to configure some default o
 * Currency Code: The default currency of the payment
 * Return URL: The page URL to which the customer will be redirected after a successful payment.
 
-In order to create a smart payment button insert the shortcode like the following:
+In order to create a [PayPal Smart Payment Button](https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/) insert the shortcode like the following:
 
 `[checkout_for_paypal item_description="My cool product" amount="1.00"]`
 
 Replace the values with your item description and amount.
 
-= Button Parameters =
+=== PayPal Smart Payment Button Parameters ===
 
 You can use additional parameters to customize your PayPal buttons.
 
@@ -69,7 +77,7 @@ You can use additional parameters to customize your PayPal buttons.
 * **color** - The color of the PayPal button (e.g. color="blue"). Available colors: gold, blue, silver, white and black. The default is gold.
 * **width** - The width of the PayPal button (e.g. width="500"). The default is 300px.
 
-For detailed documentation please visit the [Checkout for PayPal Plugin](https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/) page.
+For detailed documentation please visit the [PayPal](https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/) plugin page.
 
 = Translation =
 
@@ -92,6 +100,10 @@ Yes.
 
 Yes.
 
+= Can I accept Venmo payments in WordPress using this plugin? =
+
+Yes.
+
 == Screenshots ==
 
 1. PayPal Smart Payment Button Demo
@@ -101,6 +113,9 @@ Yes.
 none
 
 == Changelog ==
+
+= 1.0.9 =
+* Added support for the variable price extension.
 
 = 1.0.8 =
 * Customer email address is now shown in the orders menu.

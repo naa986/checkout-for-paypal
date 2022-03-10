@@ -1,7 +1,7 @@
 <?php
 /*
   Plugin Name: Checkout for PayPal
-  Version: 1.0.8
+  Version: 1.0.9
   Plugin URI: https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/  
   Author: naa986
   Author URI: https://noorsplugin.com/
@@ -15,7 +15,7 @@ if (!defined('ABSPATH'))
 
 class CHECKOUT_FOR_PAYPAL {
     
-    var $plugin_version = '1.0.8';
+    var $plugin_version = '1.0.9';
     var $plugin_url;
     var $plugin_path;
     
@@ -38,6 +38,9 @@ class CHECKOUT_FOR_PAYPAL {
 
     function plugin_includes() {
         include_once('checkout-for-paypal-order.php');
+        if(is_admin()){
+            include_once('extensions/checkout-for-paypal-extensions-menu.php');
+        }
     }
 
     function loader_operations() {
@@ -120,6 +123,7 @@ class CHECKOUT_FOR_PAYPAL {
         if (is_admin()) {
             add_submenu_page('edit.php?post_type=coforpaypal_order', __('Settings', 'checkout-for-paypal'), __('Settings', 'checkout-for-paypal'), 'manage_options', 'checkout-for-paypal-settings', array($this, 'options_page'));
             add_submenu_page('edit.php?post_type=coforpaypal_order', __('Debug', 'checkout-for-paypal'), __('Debug', 'checkout-for-paypal'), 'manage_options', 'checkout-for-paypal-debug', array($this, 'debug_page'));
+            add_submenu_page('edit.php?post_type=coforpaypal_order', __('Extensions', 'checkout-for-paypal'), __('Extensions', 'checkout-for-paypal'), 'manage_options', 'checkout-for-paypal-extensions', 'checkout_for_paypal_display_extensions_menu');
         }
     }
 
@@ -233,7 +237,7 @@ class CHECKOUT_FOR_PAYPAL {
                     if (isset($_POST['checkout_for_paypal_update_log_settings'])) {
                         $nonce = sanitize_text_field($_REQUEST['_wpnonce']);
                         if (!wp_verify_nonce($nonce, 'checkout_for_paypal_debug_log_settings')) {
-                            wp_die(__('Error! Nonce Security Check Failed! please save the debug settings again.', 'wp-stripe-checkout'));
+                            wp_die(__('Error! Nonce Security Check Failed! please save the debug settings again.', 'checkout-for-paypal'));
                         }
                         $options = array();
                         $options['enable_debug'] = (isset($_POST["enable_debug"]) && $_POST["enable_debug"] == '1') ? '1' : '';
@@ -289,13 +293,16 @@ $GLOBALS['checkout_for_paypal'] = new CHECKOUT_FOR_PAYPAL();
 
 function checkout_for_paypal_button_handler($atts) {
     $atts = array_map('sanitize_text_field', $atts);
-    if(!isset($atts['amount']) || !is_numeric($atts['amount'])){
-        return __('You need to provide a valid price amount', 'checkout-for-paypal');
-    }
     $description = '';
+    /*
+    if(!isset($atts['item_description']) || empty($atts['item_description'])){
+        return __('You need to provide a valid description', 'checkout-for-paypal');
+    }
+    */
     if(isset($atts['item_description']) && !empty($atts['item_description'])){
         $description = $atts['item_description'];
     }
+    
     $options = checkout_for_paypal_get_option();
     $currency = $options['currency_code'];
     /* There seems to be a bug where currency override doesn't work on a per button basis
@@ -328,49 +335,81 @@ EOT;
         $color = $atts['color'];
     }
     $id = uniqid();
+    $atts['id'] = $id;
+    $button_code = '';
+    $button_code = apply_filters('checkout_for_paypal_button', $button_code, $atts);
+    if(!empty($button_code)){
+        return $button_code;
+    }
+    if(!isset($atts['amount']) || !is_numeric($atts['amount'])){
+        return __('You need to provide a valid price amount', 'checkout-for-paypal');
+    }
     $button_id = 'coforpaypal-button-'.$id;
-    $button_code = '<div id="'.$button_id.'" style="max-width: '.esc_attr($width).'px;"></div>';
+    $button_container_id = 'coforpaypal-button-container-'.$id;
+    $button_code = '<div id="'.$button_container_id.'" style="max-width: '.esc_attr($width).'px;">';
+    $button_code .= '<div id="'.$button_id.'" style="max-width: '.esc_attr($width).'px;"></div>';
+    $button_code .= '</div>';
     $ajax_url = admin_url('admin-ajax.php');
     $button_code .= <<<EOT
     <script>
-    jQuery(document).ready(function() {   
-        paypal.Buttons({
-          style: {
-            color: '{$color}',
-          },  
-          createOrder: function(data, actions) {
-            return actions.order.create({
-              purchase_units: [{
-                description: "{$description}",
-                amount: {
-                  currency_code: "{$currency}",
-                  value: "{$atts['amount']}"
+    jQuery(document).ready(function() {
+            
+        function initPayPalButton{$id}() {
+            var description = "{$description}";
+            var amount = "{$atts['amount']}";
+
+            var purchase_units = [];
+            purchase_units[0] = {};
+            purchase_units[0].amount = {};
+   
+            paypal.Buttons({
+                style: {
+                    color: '{$color}',
+                },
+                onInit: function (data, actions) {
+
+                },  
+                
+                onClick: function () {
+                    purchase_units[0].description = description;
+                    purchase_units[0].amount.value = amount;
+                },    
+                    
+                createOrder: function(data, actions) {
+                    return actions.order.create({
+                        purchase_units: purchase_units,
+                        $no_shipping    
+                    });
+                },
+                            
+                onApprove: function(data, actions) {
+                    return actions.order.capture().then(function(details) {
+                        //console.log('Transaction completed by ' + details.payer.name.given_name);
+                        //console.log(details);
+                        var data = {
+                            'action': "coforpaypal_ajax_process_order",
+                            'coforpaypal_ajax_process_order': "1",
+                            'details': details 
+                        };  
+                        jQuery.ajax({
+                            url : "{$ajax_url}",
+                            type : "POST",
+                            data : data,
+                            success: function(response) {
+                                //console.log(response);
+                                $return_output
+                            }
+                        });
+                    });
+                },
+                                    
+                onError: function (err) {
+                    console.log(err);
                 }
-              }],
-              $no_shipping    
-            });
-          },
-          onApprove: function(data, actions) {
-            return actions.order.capture().then(function(details) {
-              //console.log('Transaction completed by ' + details.payer.name.given_name);
-              //console.log(details);
-                var data = {
-                    'action': "coforpaypal_ajax_process_order",
-                    'coforpaypal_ajax_process_order': "1",
-                    'details': details 
-                };  
-                jQuery.ajax({
-                    url : "{$ajax_url}",
-                    type : "POST",
-                    data : data,
-                    success: function(response) {
-                        //console.log(response);
-                        $return_output
-                    }
-                });
-            });
-          }
-        }).render('#$button_id');
+                    
+            }).render('#$button_id');
+        }
+        initPayPalButton{$id}();
     });                     
     </script>        
 EOT;
