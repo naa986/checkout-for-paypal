@@ -3,8 +3,8 @@ Contributors: naa986
 Donate link: https://noorsplugin.com/
 Tags: paypal, checkout, e-commerce, ecommerce, sell
 Requires at least: 5.5
-Tested up to: 5.9
-Stable tag: 1.0.9
+Tested up to: 6.0
+Stable tag: 1.0.10
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -17,6 +17,8 @@ Easily accept PayPal payments in WordPress by adding PayPal smart payment button
 Your customers will be able to pay for your products using PayPal, Pay Later or Credit Card. All you need to do is insert a shortcode into one of your web pages and your website will be ready to go live.
 
 Checkout for PayPal supports PayPal Sandbox. PayPal Sandbox is a simulation environment which allows you to do test purchases between a test buyer and a seller account. This is to make sure that your store can process PayPal transactions without any issues. It also helps you get prepared before selling to real customers.
+
+*Note: This is NOT an official PayPal product.*
 
 === Checkout for PayPal Features ===
 
@@ -75,6 +77,7 @@ You can use additional parameters to customize your PayPal buttons.
 * **return_url** - The URL to which the user will be redirected after the payment (e.g. return_url="https://example.com/thank-you/").
 * **no_shipping** - Do not prompt buyers for a shipping address (e.g. no_shipping="1").
 * **color** - The color of the PayPal button (e.g. color="blue"). Available colors: gold, blue, silver, white and black. The default is gold.
+* **shape** - The shape of the PayPal button (e.g. shape="pill"). Available shapes: rect and pill. The default is rect.
 * **width** - The width of the PayPal button (e.g. width="500"). The default is 300px.
 
 For detailed documentation please visit the [PayPal](https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/) plugin page.
@@ -113,6 +116,9 @@ Yes.
 none
 
 == Changelog ==
+
+= 1.0.10 =
+* Added pill shape as an available style to PayPal checkout button.
 
 = 1.0.9 =
 * Added support for the variable price extension.

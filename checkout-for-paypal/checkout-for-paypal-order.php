@@ -76,25 +76,25 @@ function checkout_for_paypal_order_columns($columns) {
 function checkout_for_paypal_custom_column($column, $post_id) {
     switch ($column) {
         case 'title' :
-            echo $post_id;
+            echo esc_html($post_id);
             break;
         case 'txn_id' :
-            echo get_post_meta($post_id, '_txn_id', true);
+            echo esc_html(get_post_meta($post_id, '_txn_id', true));
             break;
         case 'first_name' :
-            echo get_post_meta($post_id, '_first_name', true);
+            echo esc_html(get_post_meta($post_id, '_first_name', true));
             break;
         case 'last_name' :
-            echo get_post_meta($post_id, '_last_name', true);
+            echo esc_html(get_post_meta($post_id, '_last_name', true));
             break;
         case 'email' :
-            echo get_post_meta($post_id, '_email', true);
+            echo esc_html(get_post_meta($post_id, '_email', true));
             break;
         case 'mc_gross' :
-            echo get_post_meta($post_id, '_mc_gross', true);
+            echo esc_html(get_post_meta($post_id, '_mc_gross', true));
             break;
         case 'payment_status' :
-            echo get_post_meta($post_id, '_payment_status', true);
+            echo esc_html(get_post_meta($post_id, '_payment_status', true));
             break;
     }
 }

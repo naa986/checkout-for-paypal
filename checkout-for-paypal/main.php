@@ -1,7 +1,7 @@
 <?php
 /*
   Plugin Name: Checkout for PayPal
-  Version: 1.0.9
+  Version: 1.0.10
   Plugin URI: https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/  
   Author: naa986
   Author URI: https://noorsplugin.com/
@@ -15,7 +15,7 @@ if (!defined('ABSPATH'))
 
 class CHECKOUT_FOR_PAYPAL {
     
-    var $plugin_version = '1.0.9';
+    var $plugin_version = '1.0.10';
     var $plugin_url;
     var $plugin_path;
     
@@ -49,6 +49,7 @@ class CHECKOUT_FOR_PAYPAL {
             add_filter('plugin_action_links', array($this, 'add_plugin_action_links'), 10, 2);
         }
         add_action('admin_notices', array($this, 'admin_notice'));
+        add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
         add_action('wp_enqueue_scripts', array($this, 'plugin_scripts'));
         add_action('admin_menu', array($this, 'add_options_menu'));
         add_action('init', array($this, 'plugin_init'));
@@ -75,6 +76,14 @@ class CHECKOUT_FOR_PAYPAL {
     function plugin_init() {
         //register order type
         checkout_for_paypal_register_order_type();
+    }
+    
+    function enqueue_admin_scripts($hook) {
+        if('coforpaypal_order_page_checkout-for-paypal-extensions' != $hook) {
+            return;
+        }
+        wp_register_style('checkout-for-paypal-extension-menu', CHECKOUT_FOR_PAYPAL_URL.'/extensions/checkout-for-paypal-extensions-menu.css');
+        wp_enqueue_style('checkout-for-paypal-extension-menu');
     }
     
     function plugin_scripts() {
@@ -133,14 +142,22 @@ class CHECKOUT_FOR_PAYPAL {
         );
         echo '<div class="wrap"><h2>'.__('Checkout for PayPal', 'checkout-for-paypal').' v' . CHECKOUT_FOR_PAYPAL_VERSION . '</h2>';
         $url = 'https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/';
-        $link_msg = sprintf( wp_kses( __( 'Please visit the <a target="_blank" href="%s">Checkout for PayPal</a> documentation page for instructions.', 'checkout-for-paypal' ), array(  'a' => array( 'href' => array(), 'target' => array() ) ) ), esc_url( $url ) );
-        echo '<div class="notice notice-info">'.$link_msg.'</div>';
+        $link_msg = sprintf(__( 'Please visit the <a target="_blank" href="%s">Checkout for PayPal</a> documentation page for instructions.', 'checkout-for-paypal' ), esc_url($url));
+        $allowed_html_tags = array(
+            'a' => array(
+                'href' => array(),
+                'title' => array()
+            )
+        );
+        echo '<div class="notice notice-info">'.wp_kses($link_msg, $allowed_html_tags).'</div>';
         echo '<div id="poststuff"><div id="post-body">';
-
+        $current = '';
+        $tab = '';
         if (isset($_GET['page'])) {
             $current = sanitize_text_field($_GET['page']);
-            if (isset($_GET['action'])) {
-                $current .= "&action=" . sanitize_text_field($_GET['action']);
+            if (isset($_GET['tab'])) {
+                $tab = sanitize_text_field($_GET['tab']);
+                $current .= "&tab=" . $tab;
             }
         }
         $content = '';
@@ -154,7 +171,17 @@ class CHECKOUT_FOR_PAYPAL {
             $content .= '<a class="nav-tab' . $class . '" href="?post_type=coforpaypal_order&page=' . $location . '">' . $tabname . '</a>';
         }
         $content .= '</h2>';
-        echo $content;
+        $allowed_html_tags = array(
+            'a' => array(
+                'href' => array(),
+                'class' => array()
+            ),
+            'h2' => array(
+                'href' => array(),
+                'class' => array()
+            )
+        );
+        echo wp_kses($content, $allowed_html_tags);
 
         $this->general_settings();
 
@@ -178,7 +205,7 @@ class CHECKOUT_FOR_PAYPAL {
             }
             $return_url = '';
             if(isset($_POST['return_url']) && !empty($_POST['return_url'])){
-                $return_url = sanitize_text_field($_POST['return_url']);
+                $return_url = esc_url_raw($_POST['return_url']);
             }
             $paypal_options = array();
             $paypal_options['app_client_id'] = $app_client_id;
@@ -193,7 +220,7 @@ class CHECKOUT_FOR_PAYPAL {
         
         ?>
 
-        <form method="post" action="<?php echo $_SERVER["REQUEST_URI"]; ?>">
+        <form method="post" action="">
             <?php wp_nonce_field('checkout_for_paypal_general_settings'); ?>
 
             <table class="form-table">
@@ -201,28 +228,28 @@ class CHECKOUT_FOR_PAYPAL {
                 <tbody>
                     
                     <tr valign="top">
-                        <th scope="row"><label for="app_client_id"><?Php _e('Client ID', 'checkout-for-paypal');?></label></th>
+                        <th scope="row"><label for="app_client_id"><?php _e('Client ID', 'checkout-for-paypal');?></label></th>
                         <td><input name="app_client_id" type="text" id="app_client_id" value="<?php echo esc_attr($paypal_options['app_client_id']); ?>" class="regular-text">
-                            <p class="description"><?Php _e('The client ID for your PayPal REST API app', 'checkout-for-paypal');?></p></td>
+                            <p class="description"><?php _e('The client ID for your PayPal REST API app', 'checkout-for-paypal');?></p></td>
                     </tr>
 
                     <tr valign="top">
-                        <th scope="row"><label for="currency_code"><?Php _e('Currency Code', 'checkout-for-paypal');?></label></th>
+                        <th scope="row"><label for="currency_code"><?php _e('Currency Code', 'checkout-for-paypal');?></label></th>
                         <td><input name="currency_code" type="text" id="currency_code" value="<?php echo esc_attr($paypal_options['currency_code']); ?>" class="regular-text">
-                            <p class="description"><?Php _e('The default currency of the payment', 'checkout-for-paypal');?> (<?Php _e('example', 'checkout-for-paypal');?>: USD, CAD, GBP, EUR)</p></td>
+                            <p class="description"><?php _e('The default currency of the payment', 'checkout-for-paypal');?> (<?php _e('example', 'checkout-for-paypal');?>: USD, CAD, GBP, EUR)</p></td>
                     </tr>
                     
                     <tr valign="top">
-                        <th scope="row"><label for="return_url"><?Php _e('Return URL', 'checkout-for-paypal');?></label></th>
-                        <td><input name="return_url" type="text" id="return_url" value="<?php echo esc_url_raw($paypal_options['return_url']); ?>" class="regular-text">
-                            <p class="description"><?Php _e('The page URL to which the customer will be redirected after a successful payment.', 'checkout-for-paypal');?></p></td>
+                        <th scope="row"><label for="return_url"><?php _e('Return URL', 'checkout-for-paypal');?></label></th>
+                        <td><input name="return_url" type="text" id="return_url" value="<?php echo esc_url($paypal_options['return_url']); ?>" class="regular-text">
+                            <p class="description"><?php _e('The page URL to which the customer will be redirected after a successful payment.', 'checkout-for-paypal');?></p></td>
                     </tr>
 
                 </tbody>
 
             </table>
 
-            <p class="submit"><input type="submit" name="checkout_for_paypal_update_settings" id="checkout_for_paypal_update_settings" class="button button-primary" value="<?Php _e('Save Changes', 'checkout-for-paypal');?>"></p></form>
+            <p class="submit"><input type="submit" name="checkout_for_paypal_update_settings" id="checkout_for_paypal_update_settings" class="button button-primary" value="<?php _e('Save Changes', 'checkout-for-paypal');?>"></p></form>
 
         <?php
     }
@@ -230,7 +257,7 @@ class CHECKOUT_FOR_PAYPAL {
     function debug_page() {
         ?>
         <div class="wrap">
-            <h2><?Php _e('Checkout for PayPal Debug Log', 'checkout-for-paypal');?></h2>
+            <h2><?php _e('Checkout for PayPal Debug Log', 'checkout-for-paypal');?></h2>
             <div id="poststuff">
                 <div id="post-body">
                     <?php
@@ -260,26 +287,26 @@ class CHECKOUT_FOR_PAYPAL {
                     $options = checkout_for_paypal_get_option();
                     ?>
                     <div id="template"><textarea cols="70" rows="25" name="checkout_for_paypal_log" id="checkout_for_paypal_log"><?php echo esc_textarea($content); ?></textarea></div>                     
-                    <form method="post" action="<?php echo $_SERVER["REQUEST_URI"]; ?>">
+                    <form method="post" action="">
                         <?php wp_nonce_field('checkout_for_paypal_debug_log_settings'); ?>
                         <table class="form-table">
                             <tbody>
                                 <tr valign="top">
-                                    <th scope="row"><?Php _e('Enable Debug', 'checkout-for-paypal');?></th>
+                                    <th scope="row"><?php _e('Enable Debug', 'checkout-for-paypal');?></th>
                                     <td> <fieldset><legend class="screen-reader-text"><span>Enable Debug</span></legend><label for="enable_debug">
                                                 <input name="enable_debug" type="checkbox" id="enable_debug" <?php if ($options['enable_debug'] == '1') echo ' checked="checked"'; ?> value="1">
-                                                <?Php _e('Check this option if you want to enable debug', 'checkout-for-paypal');?></label>
+                                                <?php _e('Check this option if you want to enable debug', 'checkout-for-paypal');?></label>
                                         </fieldset></td>
                                 </tr>
 
                             </tbody>
 
                         </table>
-                        <p class="submit"><input type="submit" name="checkout_for_paypal_update_log_settings" id="checkout_for_paypal_update_log_settings" class="button button-primary" value="<?Php _e('Save Changes', 'checkout-for-paypal');?>"></p>
+                        <p class="submit"><input type="submit" name="checkout_for_paypal_update_log_settings" id="checkout_for_paypal_update_log_settings" class="button button-primary" value="<?php _e('Save Changes', 'checkout-for-paypal');?>"></p>
                     </form>
-                    <form method="post" action="<?php echo $_SERVER["REQUEST_URI"]; ?>">
+                    <form method="post" action="">
                         <?php wp_nonce_field('checkout_for_paypal_reset_log_settings'); ?>                            
-                        <p class="submit"><input type="submit" name="checkout_for_paypal_reset_log" id="checkout_for_paypal_reset_log" class="button" value="<?Php _e('Reset Log', 'checkout-for-paypal');?>"></p>
+                        <p class="submit"><input type="submit" name="checkout_for_paypal_reset_log" id="checkout_for_paypal_reset_log" class="button" value="<?php _e('Reset Log', 'checkout-for-paypal');?>"></p>
                     </form>
                 </div>         
             </div>
@@ -331,8 +358,21 @@ EOT;
         $width = $atts['width'];
     }
     $color = 'gold';
-    if(isset($atts['color']) && !empty($atts['color'])){
-        $color = $atts['color'];
+    if(isset($atts['color']) && $atts['color'] == 'blue'){
+        $color = 'blue';
+    }
+    else if(isset($atts['color']) && $atts['color'] == 'silver'){
+        $color = 'silver';
+    }
+    else if(isset($atts['color']) && $atts['color'] == 'white'){
+        $color = 'white';
+    }
+    else if(isset($atts['color']) && $atts['color'] == 'black'){
+        $color = 'black';
+    }
+    $shape = 'rect';
+    if(isset($atts['shape']) && $atts['shape'] == 'pill'){
+        $shape = 'pill';
     }
     $id = uniqid();
     $atts['id'] = $id;
@@ -346,8 +386,8 @@ EOT;
     }
     $button_id = 'coforpaypal-button-'.$id;
     $button_container_id = 'coforpaypal-button-container-'.$id;
-    $button_code = '<div id="'.$button_container_id.'" style="max-width: '.esc_attr($width).'px;">';
-    $button_code .= '<div id="'.$button_id.'" style="max-width: '.esc_attr($width).'px;"></div>';
+    $button_code = '<div id="'.esc_attr($button_container_id).'" style="max-width: '.esc_attr($width).'px;">';
+    $button_code .= '<div id="'.esc_attr($button_id).'" style="max-width: '.esc_attr($width).'px;"></div>';
     $button_code .= '</div>';
     $ajax_url = admin_url('admin-ajax.php');
     $button_code .= <<<EOT
@@ -365,6 +405,7 @@ EOT;
             paypal.Buttons({
                 style: {
                     color: '{$color}',
+                    shape: '{$shape}'
                 },
                 onInit: function (data, actions) {
 
