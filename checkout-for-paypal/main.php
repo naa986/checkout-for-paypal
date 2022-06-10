@@ -1,7 +1,7 @@
 <?php
 /*
   Plugin Name: Checkout for PayPal
-  Version: 1.0.10
+  Version: 1.0.11
   Plugin URI: https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/  
   Author: naa986
   Author URI: https://noorsplugin.com/
@@ -15,7 +15,7 @@ if (!defined('ABSPATH'))
 
 class CHECKOUT_FOR_PAYPAL {
     
-    var $plugin_version = '1.0.10';
+    var $plugin_version = '1.0.11';
     var $plugin_url;
     var $plugin_path;
     
@@ -518,29 +518,42 @@ function checkout_for_paypal_ajax_process_order(){
         checkout_for_paypal_debug_log("An order with this transaction ID already exists. This payment will not be processed.", false);
         wp_die();
     } 
+    $payer_name = '';
     $first_name = '';
     if (isset($payer['name']['given_name'])) {
         $first_name = sanitize_text_field($payer['name']['given_name']);
+        $payer_name .= $first_name;
     }
     $last_name = '';
     if (isset($payer['name']['surname'])) {
         $last_name = sanitize_text_field($payer['name']['surname']);
+        $payer_name .= ' '.$last_name;
     }
     $email = '';
     if (isset($payer['email_address'])) {
         $email = sanitize_email($payer['email_address']);
     }
+    $item_description = '';
+    if (isset($purchase_units['description'])) {
+        $item_description = sanitize_text_field($purchase_units['description']);
+    }
     $mc_gross = '';
     if (isset($purchase_units['amount']['value'])) {
         $mc_gross = sanitize_text_field($purchase_units['amount']['value']);
+    }
+    $currency = '';
+    if (isset($purchase_units['amount']['currency_code'])) {
+        $currency = sanitize_text_field($purchase_units['amount']['currency_code']);
     }
     $ship_to_name = '';
     if (isset($purchase_units['shipping']['name'])) {
         $ship_to_name = isset($purchase_units['shipping']['name']['full_name']) ? sanitize_text_field($purchase_units['shipping']['name']['full_name']) : '';
     }
+    /*
     if(empty($ship_to_name)){
         $ship_to_name = $first_name.' '.$last_name;
     }
+    */
     $ship_to = '';
     if (isset($purchase_units['shipping']['address'])) {
         $address_street = isset($purchase_units['shipping']['address']['address_line_1']) ? sanitize_text_field($purchase_units['shipping']['address']['address_line_1']) : '';
@@ -573,6 +586,21 @@ function checkout_for_paypal_ajax_process_order(){
     $post_updated = false;
     if ($post_id > 0) {
         $post_content = '';
+        if(!empty($item_description)){
+            $post_content .= '<strong>Item Description:</strong> '.$item_description.'<br />';
+        }
+        if(!empty($mc_gross)){
+            $post_content .= '<strong>Amount:</strong> '.$mc_gross.'<br />';
+        }
+        if(!empty($currency)){
+            $post_content .= '<strong>Currency:</strong> '.$currency.'<br />';
+        }
+        if(!empty($payer_name)){
+            $post_content .= '<strong>Payer Name:</strong> '.$payer_name.'<br />';
+        }
+        if(!empty($email)){
+            $post_content .= '<strong>Email:</strong> '.$email.'<br />';
+        }
         if(!empty($ship_to)){
             $ship_to = '<h2>'.__('Ship To', 'wp-paypal').'</h2><br />'.$ship_to_name.'<br />'.$ship_to.'<br />';
         }

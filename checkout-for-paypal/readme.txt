@@ -1,10 +1,10 @@
 === Checkout for PayPal ===
 Contributors: naa986
 Donate link: https://noorsplugin.com/
-Tags: paypal, checkout, e-commerce, ecommerce, sell
+Tags: paypal, checkout, e-commerce, ecommerce, sell, donation, payment, shop, cart, payments, store, sales, credit card
 Requires at least: 5.5
 Tested up to: 6.0
-Stable tag: 1.0.10
+Stable tag: 1.0.11
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -116,6 +116,9 @@ Yes.
 none
 
 == Changelog ==
+
+= 1.0.11 =
+* Made item information available in the orders menu.
 
 = 1.0.10 =
 * Added pill shape as an available style to PayPal checkout button.
