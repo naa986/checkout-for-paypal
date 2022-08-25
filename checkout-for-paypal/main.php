@@ -1,7 +1,7 @@
 <?php
 /*
   Plugin Name: Checkout for PayPal
-  Version: 1.0.11
+  Version: 1.0.12
   Plugin URI: https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/  
   Author: naa986
   Author URI: https://noorsplugin.com/
@@ -15,7 +15,7 @@ if (!defined('ABSPATH'))
 
 class CHECKOUT_FOR_PAYPAL {
     
-    var $plugin_version = '1.0.11';
+    var $plugin_version = '1.0.12';
     var $plugin_url;
     var $plugin_path;
     
@@ -39,7 +39,7 @@ class CHECKOUT_FOR_PAYPAL {
     function plugin_includes() {
         include_once('checkout-for-paypal-order.php');
         if(is_admin()){
-            include_once('extensions/checkout-for-paypal-extensions-menu.php');
+            include_once('addons/checkout-for-paypal-addons-menu.php');
         }
     }
 
@@ -79,11 +79,11 @@ class CHECKOUT_FOR_PAYPAL {
     }
     
     function enqueue_admin_scripts($hook) {
-        if('coforpaypal_order_page_checkout-for-paypal-extensions' != $hook) {
+        if('coforpaypal_order_page_checkout-for-paypal-addons' != $hook) {
             return;
         }
-        wp_register_style('checkout-for-paypal-extension-menu', CHECKOUT_FOR_PAYPAL_URL.'/extensions/checkout-for-paypal-extensions-menu.css');
-        wp_enqueue_style('checkout-for-paypal-extension-menu');
+        wp_register_style('checkout-for-paypal-addon-menu', CHECKOUT_FOR_PAYPAL_URL.'/addons/checkout-for-paypal-addons-menu.css');
+        wp_enqueue_style('checkout-for-paypal-addon-menu');
     }
     
     function plugin_scripts() {
@@ -95,7 +95,6 @@ class CHECKOUT_FOR_PAYPAL {
                 $options = checkout_for_paypal_get_option();
                 $sdk_js_url = add_query_arg(array(
                     'client-id' => $options['app_client_id'],
-                    'enable-funding' => 'venmo',
                     'currency' => $options['currency_code'],                 
                 ), 'https://www.paypal.com/sdk/js');
                 wp_enqueue_script('jquery');
@@ -132,7 +131,7 @@ class CHECKOUT_FOR_PAYPAL {
         if (is_admin()) {
             add_submenu_page('edit.php?post_type=coforpaypal_order', __('Settings', 'checkout-for-paypal'), __('Settings', 'checkout-for-paypal'), 'manage_options', 'checkout-for-paypal-settings', array($this, 'options_page'));
             add_submenu_page('edit.php?post_type=coforpaypal_order', __('Debug', 'checkout-for-paypal'), __('Debug', 'checkout-for-paypal'), 'manage_options', 'checkout-for-paypal-debug', array($this, 'debug_page'));
-            add_submenu_page('edit.php?post_type=coforpaypal_order', __('Extensions', 'checkout-for-paypal'), __('Extensions', 'checkout-for-paypal'), 'manage_options', 'checkout-for-paypal-extensions', 'checkout_for_paypal_display_extensions_menu');
+            add_submenu_page('edit.php?post_type=coforpaypal_order', __('Add-ons', 'checkout-for-paypal'), __('Add-ons', 'checkout-for-paypal'), 'manage_options', 'checkout-for-paypal-addons', 'checkout_for_paypal_display_addons_menu');
         }
     }
 
@@ -146,10 +145,10 @@ class CHECKOUT_FOR_PAYPAL {
         $allowed_html_tags = array(
             'a' => array(
                 'href' => array(),
-                'title' => array()
+                'target' => array()
             )
         );
-        echo '<div class="notice notice-info">'.wp_kses($link_msg, $allowed_html_tags).'</div>';
+        echo '<div class="update-nag">'.wp_kses($link_msg, $allowed_html_tags).'</div>';
         echo '<div id="poststuff"><div id="post-body">';
         $current = '';
         $tab = '';
