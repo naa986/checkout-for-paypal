@@ -1,7 +1,7 @@
 <?php
 /*
   Plugin Name: Checkout for PayPal
-  Version: 1.0.12
+  Version: 1.0.13
   Plugin URI: https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/  
   Author: naa986
   Author URI: https://noorsplugin.com/
@@ -15,7 +15,7 @@ if (!defined('ABSPATH'))
 
 class CHECKOUT_FOR_PAYPAL {
     
-    var $plugin_version = '1.0.12';
+    var $plugin_version = '1.0.13';
     var $plugin_url;
     var $plugin_path;
     
@@ -356,6 +356,10 @@ EOT;
     if(isset($atts['width']) && !empty($atts['width'])){
         $width = $atts['width'];
     }
+    $layout = 'vertical';
+    if(isset($atts['layout']) && $atts['layout'] == 'horizontal'){
+        $layout = 'horizontal';
+    }
     $color = 'gold';
     if(isset($atts['color']) && $atts['color'] == 'blue'){
         $color = 'blue';
@@ -403,6 +407,7 @@ EOT;
    
             paypal.Buttons({
                 style: {
+                    layout: '{$layout}',
                     color: '{$color}',
                     shape: '{$shape}'
                 },

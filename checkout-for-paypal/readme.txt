@@ -4,7 +4,7 @@ Donate link: https://noorsplugin.com/
 Tags: paypal, checkout, e-commerce, ecommerce, sell, donation, payment, shop, cart, payments, store, sales, credit card
 Requires at least: 5.5
 Tested up to: 6.0
-Stable tag: 1.0.12
+Stable tag: 1.0.13
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -74,6 +74,7 @@ You can use additional parameters to customize your PayPal buttons.
 * **item_description** - Description of the item.
 * **return_url** - The URL to which the user will be redirected after the payment (e.g. return_url="https://example.com/thank-you/").
 * **no_shipping** - Do not prompt buyers for a shipping address (e.g. no_shipping="1").
+* **layout** - The layout of the PayPal button (e.g. layout="horizontal"). Available layouts: vertical, horizontal. The default is vertical.
 * **color** - The color of the PayPal button (e.g. color="blue"). Available colors: gold, blue, silver, white and black. The default is gold.
 * **shape** - The shape of the PayPal button (e.g. shape="pill"). Available shapes: rect and pill. The default is rect.
 * **width** - The width of the PayPal button (e.g. width="500"). The default is 300px.
@@ -116,6 +117,9 @@ Yes.
 none
 
 == Changelog ==
+
+= 1.0.13 =
+* Added horizontal layout option to PayPal checkout button.
 
 = 1.0.12 =
 * Made some improvements in the plugin settings.
