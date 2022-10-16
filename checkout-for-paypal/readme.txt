@@ -111,7 +111,8 @@ Yes.
 == Screenshots ==
 
 1. PayPal Smart Payment Button Demo
-2. PayPal Orders
+2. Horizontal PayPal Checkout Button
+3. PayPal Orders
 
 == Upgrade Notice ==
 none
