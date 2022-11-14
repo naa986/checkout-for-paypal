@@ -1,7 +1,7 @@
 <?php
 /*
   Plugin Name: Checkout for PayPal
-  Version: 1.0.13
+  Version: 1.0.14
   Plugin URI: https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/  
   Author: naa986
   Author URI: https://noorsplugin.com/
@@ -15,7 +15,7 @@ if (!defined('ABSPATH'))
 
 class CHECKOUT_FOR_PAYPAL {
     
-    var $plugin_version = '1.0.13';
+    var $plugin_version = '1.0.14';
     var $plugin_url;
     var $plugin_path;
     
@@ -387,10 +387,11 @@ EOT;
     if(!isset($atts['amount']) || !is_numeric($atts['amount'])){
         return __('You need to provide a valid price amount', 'checkout-for-paypal');
     }
+    $esc_js = 'esc_js';
     $button_id = 'coforpaypal-button-'.$id;
     $button_container_id = 'coforpaypal-button-container-'.$id;
-    $button_code = '<div id="'.esc_attr($button_container_id).'" style="max-width: '.esc_attr($width).'px;">';
-    $button_code .= '<div id="'.esc_attr($button_id).'" style="max-width: '.esc_attr($width).'px;"></div>';
+    $button_code = '<div id="'.esc_attr($button_container_id).'" style="'.esc_attr('max-width: '.$width.'px;').'">';
+    $button_code .= '<div id="'.esc_attr($button_id).'" style="'.esc_attr('max-width: '.$width.'px;').'"></div>';
     $button_code .= '</div>';
     $ajax_url = admin_url('admin-ajax.php');
     $button_code .= <<<EOT
@@ -398,8 +399,8 @@ EOT;
     jQuery(document).ready(function() {
             
         function initPayPalButton{$id}() {
-            var description = "{$description}";
-            var amount = "{$atts['amount']}";
+            var description = "{$esc_js($description)}";
+            var amount = "{$esc_js($atts['amount'])}";
 
             var purchase_units = [];
             purchase_units[0] = {};
