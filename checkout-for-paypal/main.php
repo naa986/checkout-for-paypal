@@ -1,7 +1,7 @@
 <?php
 /*
   Plugin Name: Checkout for PayPal
-  Version: 1.0.14
+  Version: 1.0.15
   Plugin URI: https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/  
   Author: naa986
   Author URI: https://noorsplugin.com/
@@ -15,7 +15,7 @@ if (!defined('ABSPATH'))
 
 class CHECKOUT_FOR_PAYPAL {
     
-    var $plugin_version = '1.0.14';
+    var $plugin_version = '1.0.15';
     var $plugin_url;
     var $plugin_path;
     
@@ -93,10 +93,14 @@ class CHECKOUT_FOR_PAYPAL {
                     && has_shortcode($post->post_content, 'checkout_for_paypal')
                         || has_shortcode(get_post_meta($post->ID, 'checkout-for-paypal-custom-field', true), 'checkout_for_paypal')){
                 $options = checkout_for_paypal_get_option();
-                $sdk_js_url = add_query_arg(array(
+                $args = array(
                     'client-id' => $options['app_client_id'],
                     'currency' => $options['currency_code'],                 
-                ), 'https://www.paypal.com/sdk/js');
+                );
+                if(isset($options['enable_venmo']) && $options['enable_venmo'] == '1'){
+                    $args['enable-funding'] = 'venmo';
+                }
+                $sdk_js_url = add_query_arg($args, 'https://www.paypal.com/sdk/js');
                 wp_enqueue_script('jquery');
                 wp_register_script('checkout-for-paypal', $sdk_js_url, array('jquery'), null);
                 wp_enqueue_script('checkout-for-paypal');
@@ -206,10 +210,12 @@ class CHECKOUT_FOR_PAYPAL {
             if(isset($_POST['return_url']) && !empty($_POST['return_url'])){
                 $return_url = esc_url_raw($_POST['return_url']);
             }
+            $enable_venmo = (isset($_POST['enable_venmo']) && $_POST['enable_venmo'] == '1') ? '1' : '';
             $paypal_options = array();
             $paypal_options['app_client_id'] = $app_client_id;
             $paypal_options['currency_code'] = $currency_code;
             $paypal_options['return_url'] = $return_url;
+            $paypal_options['enable_venmo'] = $enable_venmo;
             checkout_for_paypal_update_option($paypal_options);
             echo '<div id="message" class="updated fade"><p><strong>';
             echo __('Settings Saved', 'checkout-for-paypal').'!';
@@ -242,6 +248,14 @@ class CHECKOUT_FOR_PAYPAL {
                         <th scope="row"><label for="return_url"><?php _e('Return URL', 'checkout-for-paypal');?></label></th>
                         <td><input name="return_url" type="text" id="return_url" value="<?php echo esc_url($paypal_options['return_url']); ?>" class="regular-text">
                             <p class="description"><?php _e('The page URL to which the customer will be redirected after a successful payment.', 'checkout-for-paypal');?></p></td>
+                    </tr>
+                    
+                    <tr valign="top">
+                        <th scope="row"><?php _e('Enable Venmo', 'wp-stripe-checkout');?></th>
+                        <td> <fieldset><legend class="screen-reader-text"><span>Enable Venmo</span></legend><label for="enable_venmo">
+                                    <input name="enable_venmo" type="checkbox" id="enable_venmo" <?php if (isset($paypal_options['enable_venmo']) && $paypal_options['enable_venmo'] == '1') echo ' checked="checked"'; ?> value="1">
+                                    <?php _e('Check this option to add the Venmo button to your checkout integration.', 'checkout-for-paypal');?></label>
+                            </fieldset></td>
                     </tr>
 
                 </tbody>
@@ -677,6 +691,7 @@ function checkout_for_paypal_get_empty_options_array(){
     $options['app_client_id'] = '';
     $options['currency_code'] = '';
     $options['return_url'] = '';
+    $options['enable_venmo'] = '';
     $options['enable_debug'] = '';
     return $options;
 }

@@ -4,7 +4,7 @@ Donate link: https://noorsplugin.com/
 Tags: paypal, checkout, e-commerce, ecommerce, sell, donation, payment, shop, cart, payments, store, sales, credit card
 Requires at least: 5.5
 Tested up to: 6.1
-Stable tag: 1.0.14
+Stable tag: 1.0.15
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -118,6 +118,9 @@ Yes.
 none
 
 == Changelog ==
+
+= 1.0.15 =
+* Added an option to show the Venmo button at checkout.
 
 = 1.0.14 =
 * Made some security related improvements suggested by wpscan.
