@@ -4,7 +4,7 @@ Donate link: https://noorsplugin.com/
 Tags: paypal, checkout, e-commerce, ecommerce, sell, donation, payment, shop, cart, payments, store, sales, credit card
 Requires at least: 5.5
 Tested up to: 6.1
-Stable tag: 1.0.15
+Stable tag: 1.0.16
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -36,12 +36,14 @@ Checkout for PayPal supports PayPal Sandbox. PayPal Sandbox is a simulation envi
 * Support PayPal guest checkout (PayPal checkout without an account)
 * Sell in any currency supported by PayPal
 * Let customers set the amount they will pay
+* Send a purchase confirmation email to your customer after a transaction
+* Send a sale notification email to one or more recipients (e.g. the seller) after a transaction
 
 === Checkout for PayPal Add-ons ===
 
 * [Variable Price](https://noorsplugin.com/how-to-add-a-price-field-to-a-paypal-button/)
 
-=== How to Use Checkout for PayPal ===
+=== How to Configure Checkout for PayPal ===
 
 https://www.youtube.com/watch?v=4zXq305htBA&rel=0
 
@@ -59,6 +61,34 @@ Once the plugin is installed go to the settings menu to configure some default o
 * Client ID: The client ID for your PayPal REST API app
 * Currency Code: The default currency of the payment
 * Return URL: The page URL to which the customer will be redirected after a successful payment.
+
+=== Checkout for PayPal Emails ===
+
+Checkout for PayPal plugin comes with an "Emails" tab where you will be able to configure some email related settings.
+
+**Email Sender Options**
+
+In this section you can choose to customize the default From Name and From Email Address that will be used when sending an email.
+
+**Purchase Receipt Email**
+
+When this feature is enabled an email sent to the customer after completion of a successful purchase. Options you can customize here:
+
+* The subject of the purchase receipt email
+* The content type of the purchase receipt email. The default is "Plain Text". But you can also set it to "HTML"
+* The body of the purchase receipt email.
+
+**Sale Notification Email**
+
+When this feature is enabled an email is sent to your chosen recipient(s) after completion of a successful purchase. Options you can customize here:
+
+* The subject of the sale notification email
+* The content type of the sale notification email. The default is "Plain Text". But you can also set it to "HTML"
+* The body of the sale notification email.
+
+You can use various email tags in the body of an email to dynamically change its content. You can find the full list of available email tags in the [Checkout for PayPal](https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/) plugin page.
+
+=== How to Create a PayPal Smart Payment Button ===
 
 In order to create a [PayPal Smart Payment Button](https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/) insert the shortcode like the following:
 
@@ -113,11 +143,17 @@ Yes.
 1. PayPal Smart Payment Button Demo
 2. Horizontal PayPal Checkout Button
 3. PayPal Orders
+4. Email Sender Options
+5. Purchase Receipt Email Settings
+6. Sale Notification Email Settings
 
 == Upgrade Notice ==
 none
 
 == Changelog ==
+
+= 1.0.16 =
+* Added email settings.
 
 = 1.0.15 =
 * Added an option to show the Venmo button at checkout.
