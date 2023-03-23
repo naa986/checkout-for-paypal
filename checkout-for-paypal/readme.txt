@@ -4,7 +4,7 @@ Donate link: https://noorsplugin.com/
 Tags: paypal, checkout, e-commerce, ecommerce, sell, donation, payment, shop, cart, payments, store, sales, credit card
 Requires at least: 5.5
 Tested up to: 6.1
-Stable tag: 1.0.16
+Stable tag: 1.0.17
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -151,6 +151,9 @@ Yes.
 none
 
 == Changelog ==
+
+= 1.0.17 =
+* Fixed an error in loading scripts when the rendered page does not exist.
 
 = 1.0.16 =
 * Added email settings.
