@@ -15,6 +15,14 @@ function checkout_for_paypal_display_addons_menu()
     );
     array_push($addons_data, $addon_1);
     
+    $addon_2 = array(
+        'name' => 'Dynamic Buttons',
+        'thumbnail' => CHECKOUT_FOR_PAYPAL_URL.'/addons/images/checkout-for-paypal-dynamic-buttons.png',
+        'description' => 'Change PayPal buttons dynamically by adding parameters to URLs',
+        'page_url' => 'https://noorsplugin.com/checkout-for-paypal-dynamic-buttons/',
+    );
+    array_push($addons_data, $addon_2);
+    
     //Display the list
     foreach ($addons_data as $addon) {
         ?>

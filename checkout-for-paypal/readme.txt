@@ -1,10 +1,10 @@
 === Checkout for PayPal ===
 Contributors: naa986
 Donate link: https://noorsplugin.com/
-Tags: paypal, checkout, e-commerce, ecommerce, sell, donation, payment, shop, cart, payments, store, sales, credit card
+Tags: paypal, checkout, sell, donation, payment, shop, cart, payments, store, credit card, venmo
 Requires at least: 5.5
 Tested up to: 6.2
-Stable tag: 1.0.17
+Stable tag: 1.0.18
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -42,6 +42,7 @@ Checkout for PayPal supports PayPal Sandbox. PayPal Sandbox is a simulation envi
 === Checkout for PayPal Add-ons ===
 
 * [Variable Price](https://noorsplugin.com/how-to-add-a-price-field-to-a-paypal-button/)
+* [Dynamic Buttons](https://noorsplugin.com/checkout-for-paypal-dynamic-buttons/)
 
 === How to Configure Checkout for PayPal ===
 
@@ -151,6 +152,9 @@ Yes.
 none
 
 == Changelog ==
+
+= 1.0.18 =
+* Added support for dynamic buttons.
 
 = 1.0.17 =
 * Fixed an error in loading scripts when the rendered page does not exist.

@@ -1,7 +1,7 @@
 <?php
 /*
   Plugin Name: Checkout for PayPal
-  Version: 1.0.17
+  Version: 1.0.18
   Plugin URI: https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/  
   Author: naa986
   Author URI: https://noorsplugin.com/
@@ -15,7 +15,7 @@ if (!defined('ABSPATH'))
 
 class CHECKOUT_FOR_PAYPAL {
     
-    var $plugin_version = '1.0.17';
+    var $plugin_version = '1.0.18';
     var $db_version = '1.0.1';
     var $plugin_url;
     var $plugin_path;
@@ -589,7 +589,13 @@ function checkout_for_paypal_button_handler($atts) {
     if(isset($atts['item_description']) && !empty($atts['item_description'])){
         $description = $atts['item_description'];
     }
-    
+    $dynamic_button = false;
+    if(isset($atts['dynamic_button']) && !empty($atts['dynamic_button'])){
+        $dynamic_button = true;
+    }
+    if($dynamic_button){
+        $description = apply_filters('cfp_dynamic_button_description', $description, $atts);
+    }
     $options = checkout_for_paypal_get_option();
     $currency = $options['currency_code'];
     /* There seems to be a bug where currency override doesn't work on a per button basis
@@ -648,6 +654,10 @@ EOT;
     if(!isset($atts['amount']) || !is_numeric($atts['amount'])){
         return __('You need to provide a valid price amount', 'checkout-for-paypal');
     }
+    $amount = $atts['amount'];
+    if($dynamic_button){
+        $amount = apply_filters('cfp_dynamic_button_amount', $amount, $atts);
+    }
     $esc_js = 'esc_js';
     $button_id = 'coforpaypal-button-'.$id;
     $button_container_id = 'coforpaypal-button-container-'.$id;
@@ -661,7 +671,7 @@ EOT;
             
         function initPayPalButton{$id}() {
             var description = "{$esc_js($description)}";
-            var amount = "{$esc_js($atts['amount'])}";
+            var amount = "{$esc_js($amount)}";
 
             var purchase_units = [];
             purchase_units[0] = {};
