@@ -1,7 +1,7 @@
 <?php
 /*
   Plugin Name: Checkout for PayPal
-  Version: 1.0.18
+  Version: 1.0.19
   Plugin URI: https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/  
   Author: naa986
   Author URI: https://noorsplugin.com/
@@ -15,7 +15,7 @@ if (!defined('ABSPATH'))
 
 class CHECKOUT_FOR_PAYPAL {
     
-    var $plugin_version = '1.0.18';
+    var $plugin_version = '1.0.19';
     var $db_version = '1.0.1';
     var $plugin_url;
     var $plugin_path;
@@ -243,11 +243,16 @@ class CHECKOUT_FOR_PAYPAL {
             if(isset($_POST['return_url']) && !empty($_POST['return_url'])){
                 $return_url = esc_url_raw($_POST['return_url']);
             }
+            $cancel_url = '';
+            if(isset($_POST['cancel_url']) && !empty($_POST['cancel_url'])){
+                $cancel_url = esc_url_raw($_POST['cancel_url']);
+            }
             $enable_venmo = (isset($_POST['enable_venmo']) && $_POST['enable_venmo'] == '1') ? '1' : '';
             $paypal_options = array();
             $paypal_options['app_client_id'] = $app_client_id;
             $paypal_options['currency_code'] = $currency_code;
             $paypal_options['return_url'] = $return_url;
+            $paypal_options['cancel_url'] = $cancel_url;
             $paypal_options['enable_venmo'] = $enable_venmo;
             checkout_for_paypal_update_option($paypal_options);
             echo '<div id="message" class="updated fade"><p><strong>';
@@ -255,7 +260,7 @@ class CHECKOUT_FOR_PAYPAL {
             echo '</strong></p></div>';
         }
         $paypal_options = checkout_for_paypal_get_option();
-        
+        $cancel_url = (isset($paypal_options['cancel_url']) && !empty($paypal_options['cancel_url'])) ? $paypal_options['cancel_url'] : '';
         ?>
         <table class="coforpaypal-general-settings-table">
             <tbody>
@@ -283,7 +288,13 @@ class CHECKOUT_FOR_PAYPAL {
                                     <tr valign="top">
                                         <th scope="row"><label for="return_url"><?php _e('Return URL', 'checkout-for-paypal');?></label></th>
                                         <td><input name="return_url" type="text" id="return_url" value="<?php echo esc_url($paypal_options['return_url']); ?>" class="regular-text">
-                                            <p class="description"><?php _e('The page URL to which the customer will be redirected after a successful payment.', 'checkout-for-paypal');?></p></td>
+                                            <p class="description"><?php _e('The page URL to which the customer will be redirected after a successful payment (optional).', 'checkout-for-paypal');?></p></td>
+                                    </tr>
+                                    
+                                    <tr valign="top">
+                                        <th scope="row"><label for="cancel_url"><?php _e('Cancel URL', 'checkout-for-paypal');?></label></th>
+                                        <td><input name="cancel_url" type="text" id="cancel_url" value="<?php echo esc_url($cancel_url); ?>" class="regular-text">
+                                            <p class="description"><?php _e('The page URL to which the customer will be redirected when a payment is cancelled (optional).', 'checkout-for-paypal');?></p></td>
                                     </tr>
 
                                     <tr valign="top">
@@ -611,6 +622,14 @@ function checkout_for_paypal_button_handler($atts) {
     if(!empty($return_url)){
         $return_output = 'window.location.replace("'.$return_url.'");';
     }
+    $cancel_url = (isset($options['cancel_url']) && !empty($options['cancel_url'])) ? $options['cancel_url'] : '';
+    if(isset($atts['cancel_url']) && !empty($atts['cancel_url'])){
+        $cancel_url = $atts['cancel_url'];
+    }
+    $cancel_output = '';
+    if(!empty($cancel_url)){
+        $cancel_output = 'window.location.replace("'.$cancel_url.'");';
+    }
     $no_shipping = '';
     if(isset($atts['no_shipping']) && $atts['no_shipping']=='1'){
         $no_shipping .= <<<EOT
@@ -722,6 +741,10 @@ EOT;
                                     
                 onError: function (err) {
                     console.log(err);
+                },
+                                    
+                onCancel: function (data) {
+                    $cancel_output
                 }
                     
             }).render('#$button_id');
@@ -1015,6 +1038,7 @@ function checkout_for_paypal_get_empty_options_array(){
     $options['app_client_id'] = '';
     $options['currency_code'] = '';
     $options['return_url'] = '';
+    $options['cancel_url'] = '';
     $options['enable_venmo'] = '';
     $options['enable_debug'] = '';
     return $options;

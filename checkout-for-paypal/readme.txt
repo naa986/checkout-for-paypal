@@ -4,7 +4,7 @@ Donate link: https://noorsplugin.com/
 Tags: paypal, checkout, sell, donation, payment, shop, cart, payments, store, credit card, venmo
 Requires at least: 5.5
 Tested up to: 6.2
-Stable tag: 1.0.18
+Stable tag: 1.0.19
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -61,7 +61,8 @@ Once the plugin is installed go to the settings menu to configure some default o
 
 * Client ID: The client ID for your PayPal REST API app
 * Currency Code: The default currency of the payment
-* Return URL: The page URL to which the customer will be redirected after a successful payment.
+* Return URL: The page URL to which the customer will be redirected after a successful payment (optional).
+* Cancel URL: The page URL to which the customer will be redirected when a payment is cancelled (optional).
 
 === Checkout for PayPal Emails ===
 
@@ -104,6 +105,7 @@ You can use additional parameters to customize your PayPal buttons.
 * **amount** - The price of the item (e.g. amount="4.95").
 * **item_description** - Description of the item.
 * **return_url** - The URL to which the user will be redirected after the payment (e.g. return_url="https://example.com/thank-you/").
+* **cancel_url** - The URL to which the user will be redirected when the payment is cancelled (e.g. cancel_url="https://example.com/payment-cancelled/").
 * **no_shipping** - Do not prompt buyers for a shipping address (e.g. no_shipping="1").
 * **layout** - The layout of the PayPal button (e.g. layout="horizontal"). Available layouts: vertical, horizontal. The default is vertical.
 * **color** - The color of the PayPal button (e.g. color="blue"). Available colors: gold, blue, silver, white and black. The default is gold.
@@ -152,6 +154,9 @@ Yes.
 none
 
 == Changelog ==
+
+= 1.0.19 =
+* Added an option to configure a payment cancellation page.
 
 = 1.0.18 =
 * Added support for dynamic buttons.
