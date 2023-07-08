@@ -23,6 +23,14 @@ function checkout_for_paypal_display_addons_menu()
     );
     array_push($addons_data, $addon_2);
     
+    $addon_3 = array(
+        'name' => 'Contact Form 7 Integration',
+        'thumbnail' => CHECKOUT_FOR_PAYPAL_URL.'/addons/images/checkout-for-paypal-contact-form-7-integration.png',
+        'description' => 'Accept PayPal payments with Contact Form 7',
+        'page_url' => 'https://noorsplugin.com/checkout-for-paypal-integration-with-contact-form-7/',
+    );
+    array_push($addons_data, $addon_3);
+    
     //Display the list
     foreach ($addons_data as $addon) {
         ?>

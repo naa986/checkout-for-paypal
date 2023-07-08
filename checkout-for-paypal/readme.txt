@@ -4,7 +4,7 @@ Donate link: https://noorsplugin.com/
 Tags: paypal, checkout, sell, donation, payment, shop, cart, payments, store, credit card, venmo
 Requires at least: 5.5
 Tested up to: 6.2
-Stable tag: 1.0.19
+Stable tag: 1.0.20
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -43,6 +43,7 @@ Checkout for PayPal supports PayPal Sandbox. PayPal Sandbox is a simulation envi
 
 * [Variable Price](https://noorsplugin.com/how-to-add-a-price-field-to-a-paypal-button/)
 * [Dynamic Buttons](https://noorsplugin.com/checkout-for-paypal-dynamic-buttons/)
+* [Contact Form 7 Integration](https://noorsplugin.com/checkout-for-paypal-integration-with-contact-form-7/)
 
 === How to Configure Checkout for PayPal ===
 
@@ -154,6 +155,9 @@ Yes.
 none
 
 == Changelog ==
+
+= 1.0.20 =
+* Added support for Contact Form 7 integration.
 
 = 1.0.19 =
 * Added an option to configure a payment cancellation page.
