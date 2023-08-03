@@ -1,7 +1,7 @@
 <?php
 /*
   Plugin Name: Checkout for PayPal
-  Version: 1.0.20
+  Version: 1.0.21
   Plugin URI: https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/  
   Author: naa986
   Author URI: https://noorsplugin.com/
@@ -15,7 +15,7 @@ if (!defined('ABSPATH'))
 
 class CHECKOUT_FOR_PAYPAL {
     
-    var $plugin_version = '1.0.20';
+    var $plugin_version = '1.0.21';
     var $db_version = '1.0.1';
     var $plugin_url;
     var $plugin_path;
@@ -110,24 +110,41 @@ class CHECKOUT_FOR_PAYPAL {
             return;
         }
         if (!is_admin()) {
+            $load_scripts_globally = get_option('checkout_for_paypal_load_scripts_globally');
+            if(isset($load_scripts_globally) && !empty($load_scripts_globally)){
+                $this->load_scripts();
+                return;
+            }
             global $post;
-            if(is_a($post, 'WP_Post')
-                    && has_shortcode($post->post_content, 'checkout_for_paypal')
-                        || has_shortcode(get_post_meta($post->ID, 'checkout-for-paypal-custom-field', true), 'checkout_for_paypal')){
-                $options = checkout_for_paypal_get_option();
-                $args = array(
-                    'client-id' => $options['app_client_id'],
-                    'currency' => $options['currency_code'],                 
-                );
-                if(isset($options['enable_venmo']) && $options['enable_venmo'] == '1'){
-                    $args['enable-funding'] = 'venmo';
-                }
-                $sdk_js_url = add_query_arg($args, 'https://www.paypal.com/sdk/js');
-                wp_enqueue_script('jquery');
-                wp_register_script('checkout-for-paypal', $sdk_js_url, array('jquery'), null);
-                wp_enqueue_script('checkout-for-paypal');
-            }        
+            if(!is_a($post, 'WP_Post')){
+                return;
+            }
+            $is_js_required = false;
+            if(has_shortcode($post->post_content, 'checkout_for_paypal')){
+                $is_js_required = true;
+            }
+            if(has_shortcode(get_post_meta($post->ID, 'checkout-for-paypal-custom-field', true), 'checkout_for_paypal')){
+                $is_js_required = true;
+            }
+            if($is_js_required){
+                $this->load_scripts();
+            }
         }
+    }
+    
+    function load_scripts(){
+        $options = checkout_for_paypal_get_option();
+        $args = array(
+            'client-id' => $options['app_client_id'],
+            'currency' => $options['currency_code'],                 
+        );
+        if(isset($options['enable_venmo']) && $options['enable_venmo'] == '1'){
+            $args['enable-funding'] = 'venmo';
+        }
+        $sdk_js_url = add_query_arg($args, 'https://www.paypal.com/sdk/js');
+        wp_enqueue_script('jquery');
+        wp_register_script('checkout-for-paypal', $sdk_js_url, array('jquery'), null);
+        wp_enqueue_script('checkout-for-paypal');
     }
     
     function plugin_url() {
@@ -248,6 +265,8 @@ class CHECKOUT_FOR_PAYPAL {
                 $cancel_url = esc_url_raw($_POST['cancel_url']);
             }
             $enable_venmo = (isset($_POST['enable_venmo']) && $_POST['enable_venmo'] == '1') ? '1' : '';
+            $load_scripts_globally = (isset($_POST['load_scripts_globally']) && $_POST['load_scripts_globally'] == '1') ? '1' : '';
+            update_option('checkout_for_paypal_load_scripts_globally', $load_scripts_globally);
             $paypal_options = array();
             $paypal_options['app_client_id'] = $app_client_id;
             $paypal_options['currency_code'] = $currency_code;
@@ -261,6 +280,10 @@ class CHECKOUT_FOR_PAYPAL {
         }
         $paypal_options = checkout_for_paypal_get_option();
         $cancel_url = (isset($paypal_options['cancel_url']) && !empty($paypal_options['cancel_url'])) ? $paypal_options['cancel_url'] : '';
+        $load_scripts_globally = get_option('checkout_for_paypal_load_scripts_globally');
+        if(!isset($load_scripts_globally) || empty($load_scripts_globally)){
+            $load_scripts_globally = '';
+        }
         ?>
         <table class="coforpaypal-general-settings-table">
             <tbody>
@@ -298,10 +321,18 @@ class CHECKOUT_FOR_PAYPAL {
                                     </tr>
 
                                     <tr valign="top">
-                                        <th scope="row"><?php _e('Enable Venmo', 'wp-stripe-checkout');?></th>
+                                        <th scope="row"><?php _e('Enable Venmo', 'checkout-for-paypal');?></th>
                                         <td> <fieldset><legend class="screen-reader-text"><span>Enable Venmo</span></legend><label for="enable_venmo">
                                                     <input name="enable_venmo" type="checkbox" id="enable_venmo" <?php if (isset($paypal_options['enable_venmo']) && $paypal_options['enable_venmo'] == '1') echo ' checked="checked"'; ?> value="1">
                                                     <?php _e('Check this option to add the Venmo button to your checkout integration.', 'checkout-for-paypal');?></label>
+                                            </fieldset></td>
+                                    </tr>
+                                    
+                                    <tr valign="top">
+                                        <th scope="row"><?php _e('Load Scripts Globally', 'checkout-for-paypal');?></th>
+                                        <td> <fieldset><legend class="screen-reader-text"><span>Load Scripts Globally</span></legend><label for="load_scripts_globally">
+                                                    <input name="load_scripts_globally" type="checkbox" id="load_scripts_globally" <?php if ($load_scripts_globally == '1') echo ' checked="checked"'; ?> value="1">
+                                                    <?php _e("Check this option if you want to load PayPal scripts on every page. By default, the scripts are loaded only when a shortcode is present.", 'checkout-for-paypal');?></label>
                                             </fieldset></td>
                                     </tr>
 
