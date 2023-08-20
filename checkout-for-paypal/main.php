@@ -60,6 +60,7 @@ class CHECKOUT_FOR_PAYPAL {
         add_action('manage_coforpaypal_order_posts_custom_column', 'checkout_for_paypal_custom_column', 10, 2);
         add_action('wp_ajax_coforpaypal_ajax_process_order', 'checkout_for_paypal_ajax_process_order');
         add_action('wp_ajax_nopriv_coforpaypal_ajax_process_order', 'checkout_for_paypal_ajax_process_order');
+        add_action('checkout_for_paypal_process_order', 'checkout_for_paypal_process_order_handler');
         add_shortcode('checkout_for_paypal', 'checkout_for_paypal_button_handler');
     }
 
@@ -708,6 +709,12 @@ EOT;
     if($dynamic_button){
         $amount = apply_filters('cfp_dynamic_button_amount', $amount, $atts);
     }
+    $break_down_amount = 'false';
+    $shipping = '';
+    if(isset($atts['shipping']) && is_numeric($atts['shipping'])){
+        $shipping = $atts['shipping'];
+        $break_down_amount = 'true';
+    }
     $esc_js = 'esc_js';
     $button_id = 'coforpaypal-button-'.$id;
     $button_container_id = 'coforpaypal-button-container-'.$id;
@@ -722,11 +729,15 @@ EOT;
         function initPayPalButton{$id}() {
             var description = "{$esc_js($description)}";
             var amount = "{$esc_js($amount)}";
-
+            var totalamount = 0;
+            var shipping = "{$esc_js($shipping)}";
+            var currency = "{$esc_js($currency)}";
+            var break_down_amount = {$esc_js($break_down_amount)};
+            
             var purchase_units = [];
             purchase_units[0] = {};
             purchase_units[0].amount = {};
-   
+            
             paypal.Buttons({
                 style: {
                     layout: '{$layout}',
@@ -740,6 +751,21 @@ EOT;
                 onClick: function () {
                     purchase_units[0].description = description;
                     purchase_units[0].amount.value = amount;
+                    if(break_down_amount){
+                        purchase_units[0].amount.breakdown = {};
+                        purchase_units[0].amount.breakdown.item_total = {};
+                        purchase_units[0].amount.breakdown.item_total.currency_code = currency;
+                        purchase_units[0].amount.breakdown.item_total.value = amount;
+                    }
+                    if(shipping.length !== 0 && !isNaN(shipping)){
+                        purchase_units[0].amount.breakdown.shipping = {};
+                        purchase_units[0].amount.breakdown.shipping.currency_code = currency;
+                        purchase_units[0].amount.breakdown.shipping.value = shipping;
+                        totalamount = parseFloat(amount)+parseFloat(shipping);
+                    }
+                    if(totalamount > 0){
+                        purchase_units[0].amount.value = String(totalamount);
+                    }
                 },    
                     
                 createOrder: function(data, actions) {
@@ -801,20 +827,27 @@ function checkout_for_paypal_ajax_process_order(){
         checkout_for_paypal_debug_log("No transaction details. This payment cannot be processed.", false);
         wp_die();
     }
+    //
+    do_action('checkout_for_paypal_process_order', $post_data);
+    wp_die();
+}
+
+function checkout_for_paypal_process_order_handler($post_data)
+{
     $details = $post_data['details'];
     if(!isset($details['payer'])){
         checkout_for_paypal_debug_log("No payer data. This payment cannot be processed.", false);
-        wp_die();
+        return;
     }
     $payer = $details['payer'];
     if(!isset($details['purchase_units'][0])){
         checkout_for_paypal_debug_log("No purchase unit data. This payment cannot be processed.", false);
-        wp_die();
+        return;
     }
     $purchase_units = $details['purchase_units'][0];
     if(!isset($purchase_units['payments']['captures'][0])){
         checkout_for_paypal_debug_log("No payment capture data. This payment cannot be processed.", false);
-        wp_die();
+        return;
     }
     $capture = $purchase_units['payments']['captures'][0];
     $payment_status = '';
@@ -832,7 +865,7 @@ function checkout_for_paypal_ajax_process_order(){
         $payment_data['txn_id'] = sanitize_text_field($capture['id']);
     } else {
         checkout_for_paypal_debug_log("No transaction ID. This payment cannot be processed.", false);
-        wp_die();
+        return;
     }
     $args = array(
         'post_type' => 'coforpaypal_order',
@@ -847,7 +880,7 @@ function checkout_for_paypal_ajax_process_order(){
     $query = new WP_Query($args);
     if ($query->have_posts()) {  //a record already exists
         checkout_for_paypal_debug_log("An order with this transaction ID already exists. This payment will not be processed.", false);
-        wp_die();
+        return;
     } 
     $payer_name = '';
     $payment_data['given_name'] = '';
@@ -875,6 +908,14 @@ function checkout_for_paypal_ajax_process_order(){
     $payment_data['currency_code'] = '';
     if (isset($purchase_units['amount']['currency_code'])) {
         $payment_data['currency_code'] = sanitize_text_field($purchase_units['amount']['currency_code']);
+    }
+    $payment_data['item_total'] = $payment_data['amount'];
+    if(isset($purchase_units['amount']['breakdown']['item_total']['value'])){
+        $payment_data['item_total'] = sanitize_text_field($purchase_units['amount']['breakdown']['item_total']['value']);
+    }
+    $payment_data['shipping'] = '';
+    if(isset($purchase_units['amount']['breakdown']['shipping']['value'])){
+        $payment_data['shipping'] = sanitize_text_field($purchase_units['amount']['breakdown']['shipping']['value']);
     }
     $payment_data['shipping_name'] = '';
     if (isset($purchase_units['shipping']['name'])) {
@@ -919,11 +960,11 @@ function checkout_for_paypal_ajax_process_order(){
     $post_id = wp_insert_post($checkout_for_paypal_order, true);
     if (is_wp_error($post_id)) {
         checkout_for_paypal_debug_log("Error inserting order information: ".$post_id->get_error_message(), false);
-        wp_die();
+        return;
     }
     if (!$post_id) {
         checkout_for_paypal_debug_log("Order information could not be inserted", false);
-        wp_die();
+        return;
     }
     $post_updated = false;
     if ($post_id > 0) {
@@ -933,6 +974,12 @@ function checkout_for_paypal_ajax_process_order(){
         }
         if(!empty($payment_data['amount'])){
             $post_content .= '<strong>Amount:</strong> '.$payment_data['amount'].'<br />';
+        }
+        if(!empty($payment_data['item_total'])){
+            $post_content .= '<strong>Item Total:</strong> '.$payment_data['item_total'].'<br />';
+        }
+        if(!empty($payment_data['shipping'])){
+            $post_content .= '<strong>Shipping:</strong> '.$payment_data['shipping'].'<br />';
         }
         if(!empty($payment_data['currency_code'])){
             $post_content .= '<strong>Currency:</strong> '.$payment_data['currency_code'].'<br />';
@@ -958,11 +1005,11 @@ function checkout_for_paypal_ajax_process_order(){
         $updated_post_id = wp_update_post($updated_post, true);
         if (is_wp_error($updated_post_id)) {
             checkout_for_paypal_debug_log("Error updating order information: ".$updated_post_id->get_error_message(), false);
-            wp_die();
+            return;
         }
         if (!$updated_post_id) {
             checkout_for_paypal_debug_log("Order information could not be updated", false);
-            wp_die();
+            return;
         }
         if ($updated_post_id > 0) {
             $post_updated = true;
@@ -1036,10 +1083,10 @@ function checkout_for_paypal_ajax_process_order(){
         do_action('checkout_for_paypal_order_processed', $details);
     } else {
         checkout_for_paypal_debug_log("Order information could not be updated", false);
-        wp_die();
+        return;
     }
     checkout_for_paypal_debug_log("Payment processing completed", true, true);   
-    wp_die();   
+    return;
 }
 
 function checkout_for_paypal_get_option(){

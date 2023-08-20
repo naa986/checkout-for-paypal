@@ -1,7 +1,7 @@
 === Checkout for PayPal ===
 Contributors: naa986
 Donate link: https://noorsplugin.com/
-Tags: paypal, checkout, sell, donation, payment, shop, cart, payments, store, credit card, venmo
+Tags: paypal, checkout, e-commerce, ecommerce, payments
 Requires at least: 5.5
 Tested up to: 6.3
 Stable tag: 1.0.21
@@ -155,6 +155,11 @@ Yes.
 none
 
 == Changelog ==
+
+= 1.0.22 =
+* Added a parameter to specify the shipping amount.
+* Added email tags for the item total and shipping amount.
+* Improved the checkout flow.
 
 = 1.0.21 =
 * Added an option to load PayPal scripts on every page.
