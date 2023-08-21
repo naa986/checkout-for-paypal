@@ -4,7 +4,7 @@ Donate link: https://noorsplugin.com/
 Tags: paypal, checkout, e-commerce, ecommerce, payments
 Requires at least: 5.5
 Tested up to: 6.3
-Stable tag: 1.0.21
+Stable tag: 1.0.22
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -112,6 +112,7 @@ You can use additional parameters to customize your PayPal buttons.
 * **color** - The color of the PayPal button (e.g. color="blue"). Available colors: gold, blue, silver, white and black. The default is gold.
 * **shape** - The shape of the PayPal button (e.g. shape="pill"). Available shapes: rect and pill. The default is rect.
 * **width** - The width of the PayPal button (e.g. width="500"). The default is 300px.
+* **shipping** - The shipping amount for the item (e.g. shipping="1.50").
 
 For detailed documentation please visit the [PayPal](https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/) plugin page.
 
