@@ -4,7 +4,7 @@ Donate link: https://noorsplugin.com/
 Tags: paypal, checkout, e-commerce, ecommerce, payments
 Requires at least: 5.5
 Tested up to: 6.3
-Stable tag: 1.0.22
+Stable tag: 1.0.23
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -38,6 +38,7 @@ Checkout for PayPal supports PayPal Sandbox. PayPal Sandbox is a simulation envi
 * Let customers set the amount they will pay
 * Send a purchase confirmation email to your customer after a transaction
 * Send a sale notification email to one or more recipients (e.g. the seller) after a transaction
+* Customize the locale
 
 === Checkout for PayPal Add-ons ===
 
@@ -156,6 +157,9 @@ Yes.
 none
 
 == Changelog ==
+
+= 1.0.23 =
+* Added an option to set the locale for the buyer.
 
 = 1.0.22 =
 * Added a parameter to specify the shipping amount.

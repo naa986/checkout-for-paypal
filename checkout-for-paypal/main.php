@@ -1,7 +1,7 @@
 <?php
 /*
   Plugin Name: Checkout for PayPal
-  Version: 1.0.22
+  Version: 1.0.23
   Plugin URI: https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/  
   Author: naa986
   Author URI: https://noorsplugin.com/
@@ -15,7 +15,7 @@ if (!defined('ABSPATH'))
 
 class CHECKOUT_FOR_PAYPAL {
     
-    var $plugin_version = '1.0.22';
+    var $plugin_version = '1.0.23';
     var $db_version = '1.0.1';
     var $plugin_url;
     var $plugin_path;
@@ -142,6 +142,10 @@ class CHECKOUT_FOR_PAYPAL {
         if(isset($options['enable_venmo']) && $options['enable_venmo'] == '1'){
             $args['enable-funding'] = 'venmo';
         }
+        $locale = get_option('checkout_for_paypal_locale');
+        if(isset($locale) && !empty($locale)){
+            $args['locale'] = $locale;
+        }
         $sdk_js_url = add_query_arg($args, 'https://www.paypal.com/sdk/js');
         wp_enqueue_script('jquery');
         wp_register_script('checkout-for-paypal', $sdk_js_url, array('jquery'), null);
@@ -265,6 +269,9 @@ class CHECKOUT_FOR_PAYPAL {
             if(isset($_POST['cancel_url']) && !empty($_POST['cancel_url'])){
                 $cancel_url = esc_url_raw($_POST['cancel_url']);
             }
+            if(isset($_POST['locale'])){
+                update_option('checkout_for_paypal_locale', sanitize_text_field($_POST['locale']));
+            }
             $enable_venmo = (isset($_POST['enable_venmo']) && $_POST['enable_venmo'] == '1') ? '1' : '';
             $load_scripts_globally = (isset($_POST['load_scripts_globally']) && $_POST['load_scripts_globally'] == '1') ? '1' : '';
             update_option('checkout_for_paypal_load_scripts_globally', $load_scripts_globally);
@@ -281,10 +288,22 @@ class CHECKOUT_FOR_PAYPAL {
         }
         $paypal_options = checkout_for_paypal_get_option();
         $cancel_url = (isset($paypal_options['cancel_url']) && !empty($paypal_options['cancel_url'])) ? $paypal_options['cancel_url'] : '';
+        $locale = get_option('checkout_for_paypal_locale');
+        if(!isset($locale) || empty($locale)){
+            $locale = '';
+        }
         $load_scripts_globally = get_option('checkout_for_paypal_load_scripts_globally');
         if(!isset($load_scripts_globally) || empty($load_scripts_globally)){
             $load_scripts_globally = '';
         }
+        $locale_doc_url = "https://noorsplugin.com/paypal-checkout-locale/";
+        $locale_doc_link = sprintf(__('You can find the full list <a target="_blank" href="%s">here</a>.', 'checkout-for-paypal'), esc_url($locale_doc_url));
+        $allowed_html_tags = array(
+            'a' => array(
+                'href' => array(),
+                'target' => array()
+            )
+        );
         ?>
         <table class="coforpaypal-general-settings-table">
             <tbody>
@@ -319,6 +338,12 @@ class CHECKOUT_FOR_PAYPAL {
                                         <th scope="row"><label for="cancel_url"><?php _e('Cancel URL', 'checkout-for-paypal');?></label></th>
                                         <td><input name="cancel_url" type="text" id="cancel_url" value="<?php echo esc_url($cancel_url); ?>" class="regular-text">
                                             <p class="description"><?php _e('The page URL to which the customer will be redirected when a payment is cancelled (optional).', 'checkout-for-paypal');?></p></td>
+                                    </tr>
+                                    
+                                    <tr valign="top">
+                                        <th scope="row"><label for="locale"><?php _e('Locale', 'checkout-for-paypal');?></label></th>
+                                        <td><input name="locale" type="text" id="locale" value="<?php echo esc_attr($locale); ?>" class="regular-text">
+                                            <p class="description"><?php _e('The locale used to localize PayPal Checkout components (optional). For example,', 'checkout-for-paypal');?> fr_FR. <?php echo wp_kses($locale_doc_link, $allowed_html_tags).' '.__('Leave it empty if you want PayPal to detect the correct locale for the buyer based on their geolocation and browser preferences.', 'checkout-for-paypal');?></p></td>
                                     </tr>
 
                                     <tr valign="top">
