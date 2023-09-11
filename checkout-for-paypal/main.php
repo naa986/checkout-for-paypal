@@ -1,7 +1,7 @@
 <?php
 /*
   Plugin Name: Checkout for PayPal
-  Version: 1.0.23
+  Version: 1.0.24
   Plugin URI: https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/  
   Author: naa986
   Author URI: https://noorsplugin.com/
@@ -15,7 +15,7 @@ if (!defined('ABSPATH'))
 
 class CHECKOUT_FOR_PAYPAL {
     
-    var $plugin_version = '1.0.23';
+    var $plugin_version = '1.0.24';
     var $db_version = '1.0.1';
     var $plugin_url;
     var $plugin_path;
@@ -48,9 +48,6 @@ class CHECKOUT_FOR_PAYPAL {
 
     function loader_operations() {
         add_action('plugins_loaded', array($this, 'plugins_loaded_handler'));
-        if (is_admin()) {
-            add_filter('plugin_action_links', array($this, 'add_plugin_action_links'), 10, 2);
-        }
         add_action('admin_notices', array($this, 'admin_notice'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
         add_action('wp_enqueue_scripts', array($this, 'plugin_scripts'));
@@ -65,6 +62,9 @@ class CHECKOUT_FOR_PAYPAL {
     }
 
     function plugins_loaded_handler() {  //Runs when plugins_loaded action gets fired
+        if(is_admin() && current_user_can('manage_options')){
+            add_filter('plugin_action_links', array($this, 'add_plugin_action_links'), 10, 2);
+        }
         load_plugin_textdomain( 'checkout-for-paypal', false, plugin_basename( dirname( __FILE__ ) ) . '/languages' );
         $this->check_upgrade();
     }

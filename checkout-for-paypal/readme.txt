@@ -4,7 +4,7 @@ Donate link: https://noorsplugin.com/
 Tags: paypal, checkout, e-commerce, ecommerce, payments
 Requires at least: 5.5
 Tested up to: 6.3
-Stable tag: 1.0.23
+Stable tag: 1.0.24
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -157,6 +157,9 @@ Yes.
 none
 
 == Changelog ==
+
+= 1.0.24 =
+* Additional check for the settings link.
 
 = 1.0.23 =
 * Added an option to set the locale for the buyer.
