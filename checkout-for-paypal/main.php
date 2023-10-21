@@ -1,7 +1,7 @@
 <?php
 /*
   Plugin Name: Checkout for PayPal
-  Version: 1.0.24
+  Version: 1.0.25
   Plugin URI: https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/  
   Author: naa986
   Author URI: https://noorsplugin.com/
@@ -15,7 +15,7 @@ if (!defined('ABSPATH'))
 
 class CHECKOUT_FOR_PAYPAL {
     
-    var $plugin_version = '1.0.24';
+    var $plugin_version = '1.0.25';
     var $db_version = '1.0.1';
     var $plugin_url;
     var $plugin_path;
@@ -86,9 +86,12 @@ class CHECKOUT_FOR_PAYPAL {
 
     function admin_notice() {
         if (CHECKOUT_FOR_PAYPAL_DEBUG) {  //debug is enabled. Check to make sure log file is writable
-            $real_file = CHECKOUT_FOR_PAYPAL_DEBUG_LOG_PATH;
-            if (!is_writeable($real_file)) {
-                echo '<div class="updated"><p>' . __('Checkout for PayPal Debug log file is not writable. Please check to make sure that it has the correct file permission (ideally 644). Otherwise the plugin will not be able to write to the log file. The log file (log.txt) can be found in the root directory of the plugin - ', 'checkout-for-paypal') . '<code>' . CHECKOUT_FOR_PAYPAL_URL . '</code></p></div>';
+            $log_file = CHECKOUT_FOR_PAYPAL_DEBUG_LOG_PATH;
+            if(!file_exists($log_file)){
+                return;
+            }
+            if(!is_writeable($log_file)){
+                echo '<div class="updated"><p>' . __('Checkout for PayPal Debug log file is not writable. Please check to make sure that it has the correct file permission (ideally 644). Otherwise the plugin will not be able to write to the log file. The log file can be found in the root directory of the plugin - ', 'checkout-for-paypal') . '<code>' . CHECKOUT_FOR_PAYPAL_URL . '</code></p></div>';
             }
         }
     }
@@ -165,7 +168,21 @@ class CHECKOUT_FOR_PAYPAL {
     }
 
     function debug_log_path() {
-        return CHECKOUT_FOR_PAYPAL_PATH . '/log.txt';
+        return CHECKOUT_FOR_PAYPAL_PATH . '/logs/'. $this->debug_log_file_name();
+    }
+    
+    function debug_log_file_name() {
+        return 'log-'.$this->debug_log_file_suffix().'.txt';
+    }
+    
+    function debug_log_file_suffix() {
+        $suffix = get_option('checkoutforpaypal_logfile_suffix');
+        if(isset($suffix) && !empty($suffix)) {
+            return $suffix;
+        }
+        $suffix = uniqid();
+        update_option('checkoutforpaypal_logfile_suffix', $suffix);
+        return $suffix;
     }
 
     function add_plugin_action_links($links, $file) {
@@ -610,8 +627,12 @@ class CHECKOUT_FOR_PAYPAL {
                             echo '<div id="message" class="error"><p>'.__('Debug log file could not be reset', 'checkout-for-paypal').'!</p></div>';
                         }
                     }
-                    $real_file = CHECKOUT_FOR_PAYPAL_DEBUG_LOG_PATH;
-                    $content = file_get_contents($real_file);
+                    $log_file = CHECKOUT_FOR_PAYPAL_DEBUG_LOG_PATH;
+                    $content = '';
+                    if(file_exists($log_file))
+                    {
+                        $content = file_get_contents($log_file);
+                    }
                     $options = checkout_for_paypal_get_option();
                     ?>
                     <div id="template"><textarea cols="70" rows="25" name="checkout_for_paypal_log" id="checkout_for_paypal_log"><?php echo esc_textarea($content); ?></textarea></div>                     
@@ -922,6 +943,10 @@ function checkout_for_paypal_process_order_handler($post_data)
     if (isset($payer['email_address'])) {
         $payment_data['payer_email'] = sanitize_email($payer['email_address']);
     }
+    $payment_data['phone_number'] = '';
+    if(isset($payer['phone']['phone_number']['national_number'])){
+        $payment_data['phone_number'] = sanitize_text_field($payer['phone']['phone_number']['national_number']);
+    }
     $payment_data['description'] = '';
     if (isset($purchase_units['description'])) {
         $payment_data['description'] = sanitize_text_field($purchase_units['description']);
@@ -1014,6 +1039,9 @@ function checkout_for_paypal_process_order_handler($post_data)
         }
         if(!empty($payment_data['payer_email'])){
             $post_content .= '<strong>Email:</strong> '.$payment_data['payer_email'].'<br />';
+        }
+        if(!empty($payment_data['phone_number'])){
+            $post_content .= '<strong>Phone Number:</strong> '.$payment_data['phone_number'].'<br />';
         }
         if(!empty($ship_to)){
             $ship_to = '<h2>'.__('Ship To', 'checkout-for-paypal').'</h2><br />'.$payment_data['shipping_name'].'<br />'.$ship_to.'<br />';

@@ -74,6 +74,7 @@ function checkout_for_paypal_do_email_tags($payment_data, $content){
         '{shipping_address}',
         '{item_total}',
         '{shipping}',
+        '{phone_number}',
     );
     $replace = array(
         $payment_data['given_name'], 
@@ -87,6 +88,7 @@ function checkout_for_paypal_do_email_tags($payment_data, $content){
         $payment_data['shipping_address'],
         $payment_data['item_total'],
         $payment_data['shipping'],
+        $payment_data['phone_number'],
     );
     $content = str_replace($search, $replace, $content);
     return $content;
