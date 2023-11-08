@@ -3,7 +3,7 @@ Contributors: naa986
 Donate link: https://noorsplugin.com/
 Tags: paypal, checkout, e-commerce, ecommerce, payments
 Requires at least: 5.5
-Tested up to: 6.3
+Tested up to: 6.4
 Stable tag: 1.0.25
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -31,11 +31,7 @@ Checkout for PayPal supports PayPal Sandbox. PayPal Sandbox is a simulation envi
 * Quick settings configurations
 * Enable debug to troubleshoot various issues (e.g. orders not getting updated)
 * Switch your store to PayPal sandbox mode for testing
-* Compatible with the latest version of WordPress
-* Compatible with any WordPress theme
-* Support PayPal guest checkout (PayPal checkout without an account)
 * Sell in any currency supported by PayPal
-* Let customers set the amount they will pay
 * Send a purchase confirmation email to your customer after a transaction
 * Send a sale notification email to one or more recipients (e.g. the seller) after a transaction
 * Customize the locale
@@ -137,10 +133,6 @@ If you are a non-English speaker please help [translate Checkout for PayPal](htt
 Yes.
 
 = Can I add PayPal smart payment buttons to my website using this plugin? =
-
-Yes.
-
-= Can I accept Venmo payments in WordPress using this plugin? =
 
 Yes.
 
