@@ -1,7 +1,7 @@
 <?php
 /*
   Plugin Name: Checkout for PayPal
-  Version: 1.0.25
+  Version: 1.0.26
   Plugin URI: https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/  
   Author: naa986
   Author URI: https://noorsplugin.com/
@@ -15,8 +15,8 @@ if (!defined('ABSPATH'))
 
 class CHECKOUT_FOR_PAYPAL {
     
-    var $plugin_version = '1.0.25';
-    var $db_version = '1.0.1';
+    var $plugin_version = '1.0.26';
+    var $db_version = '1.0.2';
     var $plugin_url;
     var $plugin_path;
     
@@ -71,6 +71,14 @@ class CHECKOUT_FOR_PAYPAL {
     
     function activate_handler() {
         checkout_for_paypal_set_default_email_options();
+        //migration code - added 17-11-2023
+        $options = checkout_for_paypal_get_option();
+        if(isset($options['enable_venmo']) && $options['enable_venmo'] == '1'){
+            $options['enable_funding'] = 'venmo';
+            $options['enable_venmo'] = '';
+            checkout_for_paypal_update_option($options);
+        }
+        //
         add_option('checkout_for_paypal_db_version', $this->db_version);
     }
 
@@ -142,8 +150,11 @@ class CHECKOUT_FOR_PAYPAL {
             'client-id' => $options['app_client_id'],
             'currency' => $options['currency_code'],                 
         );
-        if(isset($options['enable_venmo']) && $options['enable_venmo'] == '1'){
-            $args['enable-funding'] = 'venmo';
+        if(isset($options['enable_funding']) && !empty($options['enable_funding'])){
+            $args['enable-funding'] = $options['enable_funding'];
+        }
+        if(isset($options['disable_funding']) && !empty($options['disable_funding'])){
+            $args['disable-funding'] = $options['disable_funding'];
         }
         $locale = get_option('checkout_for_paypal_locale');
         if(isset($locale) && !empty($locale)){
@@ -289,15 +300,23 @@ class CHECKOUT_FOR_PAYPAL {
             if(isset($_POST['locale'])){
                 update_option('checkout_for_paypal_locale', sanitize_text_field($_POST['locale']));
             }
-            $enable_venmo = (isset($_POST['enable_venmo']) && $_POST['enable_venmo'] == '1') ? '1' : '';
             $load_scripts_globally = (isset($_POST['load_scripts_globally']) && $_POST['load_scripts_globally'] == '1') ? '1' : '';
             update_option('checkout_for_paypal_load_scripts_globally', $load_scripts_globally);
+            $enable_funding = '';
+            if(isset($_POST['enable_funding'])){
+                $enable_funding = sanitize_text_field($_POST['enable_funding']);
+            }
+            $disable_funding = '';
+            if(isset($_POST['disable_funding'])){
+                $disable_funding = sanitize_text_field($_POST['disable_funding']);
+            }
             $paypal_options = array();
             $paypal_options['app_client_id'] = $app_client_id;
             $paypal_options['currency_code'] = $currency_code;
             $paypal_options['return_url'] = $return_url;
             $paypal_options['cancel_url'] = $cancel_url;
-            $paypal_options['enable_venmo'] = $enable_venmo;
+            $paypal_options['enable_funding'] = $enable_funding;
+            $paypal_options['disable_funding'] = $disable_funding;
             checkout_for_paypal_update_option($paypal_options);
             echo '<div id="message" class="updated fade"><p><strong>';
             echo __('Settings Saved', 'checkout-for-paypal').'!';
@@ -313,6 +332,8 @@ class CHECKOUT_FOR_PAYPAL {
         if(!isset($load_scripts_globally) || empty($load_scripts_globally)){
             $load_scripts_globally = '';
         }
+        $enable_funding = (isset($paypal_options['enable_funding']) && !empty($paypal_options['enable_funding'])) ? $paypal_options['enable_funding'] : '';
+        $disable_funding = (isset($paypal_options['disable_funding']) && !empty($paypal_options['disable_funding'])) ? $paypal_options['disable_funding'] : '';
         $locale_doc_url = "https://noorsplugin.com/paypal-checkout-locale/";
         $locale_doc_link = sprintf(__('You can find the full list <a target="_blank" href="%s">here</a>.', 'checkout-for-paypal'), esc_url($locale_doc_url));
         $allowed_html_tags = array(
@@ -321,6 +342,8 @@ class CHECKOUT_FOR_PAYPAL {
                 'target' => array()
             )
         );
+        $funding_src_doc_url = "https://noorsplugin.com/paypal-checkout-funding-sources/";
+        $funding_src_doc_link = sprintf(__('You can find the full list of funding sources <a target="_blank" href="%s">here</a>.', 'checkout-for-paypal'), esc_url($funding_src_doc_url));
         ?>
         <table class="coforpaypal-general-settings-table">
             <tbody>
@@ -360,16 +383,8 @@ class CHECKOUT_FOR_PAYPAL {
                                     <tr valign="top">
                                         <th scope="row"><label for="locale"><?php _e('Locale', 'checkout-for-paypal');?></label></th>
                                         <td><input name="locale" type="text" id="locale" value="<?php echo esc_attr($locale); ?>" class="regular-text">
-                                            <p class="description"><?php _e('The locale used to localize PayPal Checkout components (optional). For example,', 'checkout-for-paypal');?> fr_FR. <?php echo wp_kses($locale_doc_link, $allowed_html_tags).' '.__('Leave it empty if you want PayPal to detect the correct locale for the buyer based on their geolocation and browser preferences.', 'checkout-for-paypal');?></p></td>
-                                    </tr>
-
-                                    <tr valign="top">
-                                        <th scope="row"><?php _e('Enable Venmo', 'checkout-for-paypal');?></th>
-                                        <td> <fieldset><legend class="screen-reader-text"><span>Enable Venmo</span></legend><label for="enable_venmo">
-                                                    <input name="enable_venmo" type="checkbox" id="enable_venmo" <?php if (isset($paypal_options['enable_venmo']) && $paypal_options['enable_venmo'] == '1') echo ' checked="checked"'; ?> value="1">
-                                                    <?php _e('Check this option to add the Venmo button to your checkout integration.', 'checkout-for-paypal');?></label>
-                                            </fieldset></td>
-                                    </tr>
+                                            <p class="description"><?php _e('The locale used to localize PayPal Checkout components (optional). Example:', 'checkout-for-paypal');?> <strong>fr_FR</strong>. <?php echo wp_kses($locale_doc_link, $allowed_html_tags).' '.__('Leave it empty if you want PayPal to detect the correct locale for the buyer based on their geolocation and browser preferences.', 'checkout-for-paypal');?></p></td>
+                                    </tr>                                 
                                     
                                     <tr valign="top">
                                         <th scope="row"><?php _e('Load Scripts Globally', 'checkout-for-paypal');?></th>
@@ -377,6 +392,18 @@ class CHECKOUT_FOR_PAYPAL {
                                                     <input name="load_scripts_globally" type="checkbox" id="load_scripts_globally" <?php if ($load_scripts_globally == '1') echo ' checked="checked"'; ?> value="1">
                                                     <?php _e("Check this option if you want to load PayPal scripts on every page. By default, the scripts are loaded only when a shortcode is present.", 'checkout-for-paypal');?></label>
                                             </fieldset></td>
+                                    </tr>
+                                    
+                                    <tr valign="top">
+                                        <th scope="row"><label for="enable_funding"><?php _e('Enabled Funding Sources', 'checkout-for-paypal');?></label></th>
+                                        <td><textarea name="enable_funding" id="enable_funding" class="large-text"><?php echo esc_html($enable_funding); ?></textarea>
+                                            <p class="description"><?php echo __('Enabled funding sources in comma-separated format (optional).', 'checkout-for-paypal').' ';?>Example: <strong>venmo</strong> or <strong>venmo,credit</strong> or <strong>venmo,credit,paylater</strong>.<?php echo ' '.__('This is not required as the eligibility is determined automatically. However, this field can be used to ensure a funding source is always rendered, if eligible.', 'checkout-for-paypal').' '.wp_kses($funding_src_doc_link, $allowed_html_tags);?></p></td>
+                                    </tr>
+                                    
+                                    <tr valign="top">
+                                        <th scope="row"><label for="disable_funding"><?php _e('Disabled Funding Sources', 'checkout-for-paypal');?></label></th>
+                                        <td><textarea name="disable_funding" id="disable_funding" class="large-text"><?php echo esc_html($disable_funding); ?></textarea>
+                                            <p class="description"><?php echo __('Disabled funding sources in comma-separated format (optional).', 'checkout-for-paypal').' ';?>Example: <strong>card</strong> or <strong>card,credit</strong> or <strong>card,credit,paylater</strong>.<?php echo ' '.__('Any funding sources that you enter here are not displayed as buttons at checkout.', 'checkout-for-paypal').' '.wp_kses($funding_src_doc_link, $allowed_html_tags);?></p></td>
                                     </tr>
 
                                 </tbody>
@@ -1171,6 +1198,8 @@ function checkout_for_paypal_get_empty_options_array(){
     $options['return_url'] = '';
     $options['cancel_url'] = '';
     $options['enable_venmo'] = '';
+    $options['enable_funding'] = '';
+    $options['disable_funding'] = '';
     $options['enable_debug'] = '';
     return $options;
 }
