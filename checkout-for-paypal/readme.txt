@@ -14,6 +14,8 @@ Easily accept PayPal payments in WordPress by adding PayPal smart payment button
 
 [Checkout for PayPal](https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/) plugin allows you to easily create PayPal smart payment buttons using PayPal's checkout API (previously known as PayPal Express Checkout). It generates dynamic payment buttons using shortcodes that enable PayPal checkout on your WordPress site.
 
+https://www.youtube.com/watch?v=4zXq305htBA&rel=0
+
 Your customers will be able to pay for your products using PayPal, Pay Later or Credit Card. All you need to do is insert a shortcode into one of your web pages and your website will be ready to go live.
 
 Checkout for PayPal supports PayPal Sandbox. PayPal Sandbox is a simulation environment which allows you to do test purchases between a test buyer and a seller account. This is to make sure that your store can process PayPal transactions without any issues. It also helps you get prepared before selling to real customers.
@@ -43,8 +45,6 @@ Checkout for PayPal supports PayPal Sandbox. PayPal Sandbox is a simulation envi
 * [Contact Form 7 Integration](https://noorsplugin.com/checkout-for-paypal-integration-with-contact-form-7/)
 
 === How to Configure Checkout for PayPal ===
-
-https://www.youtube.com/watch?v=4zXq305htBA&rel=0
 
 [PayPal Checkout](https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/) plugin uses PayPal REST API to add smart payment buttons to your website. To Generate REST API credentials for the sandbox and live environments:
 
