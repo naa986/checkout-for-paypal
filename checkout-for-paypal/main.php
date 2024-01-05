@@ -1,7 +1,7 @@
 <?php
 /*
   Plugin Name: Checkout for PayPal
-  Version: 1.0.26
+  Version: 1.0.27
   Plugin URI: https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/  
   Author: naa986
   Author URI: https://noorsplugin.com/
@@ -15,7 +15,7 @@ if (!defined('ABSPATH'))
 
 class CHECKOUT_FOR_PAYPAL {
     
-    var $plugin_version = '1.0.26';
+    var $plugin_version = '1.0.27';
     var $db_version = '1.0.2';
     var $plugin_url;
     var $plugin_path;
@@ -167,14 +167,16 @@ class CHECKOUT_FOR_PAYPAL {
     }
     
     function plugin_url() {
-        if ($this->plugin_url)
+        if ($this->plugin_url){
             return $this->plugin_url;
+        }
         return $this->plugin_url = plugins_url(basename(plugin_dir_path(__FILE__)), basename(__FILE__));
     }
 
     function plugin_path() {
-        if ($this->plugin_path)
+        if ($this->plugin_path){
             return $this->plugin_path;
+        }
         return $this->plugin_path = untrailingslashit(plugin_dir_path(__FILE__));
     }
 

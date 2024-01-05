@@ -4,7 +4,7 @@ Donate link: https://noorsplugin.com/
 Tags: paypal, checkout, e-commerce, ecommerce, payments
 Requires at least: 5.5
 Tested up to: 6.4
-Stable tag: 1.0.26
+Stable tag: 1.0.27
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -149,6 +149,9 @@ Yes.
 none
 
 == Changelog ==
+
+= 1.0.27 =
+* Made changes to the code that retrieve the plugin url and path.
 
 = 1.0.26 =
 * Added options to enable/disable funding sources.
