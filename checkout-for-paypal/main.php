@@ -987,12 +987,12 @@ function checkout_for_paypal_button_handler($atts) {
                         const response_data = await response.json();
 
                         if (response_data.order_id) {
-                            console.log('Create-order API call to PayPal completed successfully.');
+                            console.log('Create-order API call to PayPal completed successfully');
                             return response_data.order_id;
                         } else {
                             const error_message = response_data.err_msg
-                            console.error('Error occurred during create-order call to PayPal. ' + error_message);
-                            throw new Error(error_message);//This will trigger the alert in the "catch" block below.
+                            console.error('Error occurred during create-order call to PayPal: ' + error_message);
+                            throw new Error(error_message); //This will trigger an alert in the catch block below
                         }
                     } catch (error) {
                         console.error(error.message);
@@ -1002,11 +1002,9 @@ function checkout_for_paypal_button_handler($atts) {
                             
                 onApprove: async function(data, actions) {
                         
-                    console.log('Sending AJAX request for capture-order call.');
+                    console.log('Sending AJAX request for capture-order call');
                     let pp_bn_data = {};
-                    pp_bn_data.order_id = data.orderID;//The orderID is the ID of the order that was created in the createOrder method.
-                    let wpec_data = parent.data;//parent.data is the data object that was passed to the ppecHandler constructor.
-                    //console.log('WPEC data (JSON): ' + JSON.stringify(wpec_data));
+                    pp_bn_data.order_id = data.orderID;
 
                     let post_data = 'action=coforpaypal_pp_api_capture_order&data=' + encodeURIComponent(JSON.stringify(pp_bn_data));
                     try {
@@ -1020,13 +1018,12 @@ function checkout_for_paypal_button_handler($atts) {
 
                         const response_data = await response.json();
                         if (response_data.success) {
-                            console.log('Capture-order API call to PayPal completed successfully.');
-                            //return response_data.order_id;
+                            console.log('Capture-order API call to PayPal completed successfully');
                             $return_output
                         } else {
                             const error_message = response_data.err_msg
                             console.error('Error: ' + error_message);
-                            throw new Error(error_message);//This will trigger the alert in the "catch" block below.
+                            throw new Error(error_message); //This will trigger an alert in the catch block below
                         }
 
                     } catch (error) {

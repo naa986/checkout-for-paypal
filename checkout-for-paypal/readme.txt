@@ -1,10 +1,9 @@
 === Checkout for PayPal ===
 Contributors: naa986
 Donate link: https://noorsplugin.com/
-Tags: paypal, checkout, e-commerce, ecommerce, payments
+Tags: paypal, checkout, credit card, ecommerce, payments
 Requires at least: 5.5
 Tested up to: 6.5
-Stable tag: 1.0.28
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -105,7 +104,7 @@ You can use additional parameters to customize your PayPal buttons.
 * **item_description** - Description of the item.
 * **return_url** - The URL to which the user will be redirected after the payment (e.g. return_url="https://example.com/thank-you/").
 * **cancel_url** - The URL to which the user will be redirected when the payment is cancelled (e.g. cancel_url="https://example.com/payment-cancelled/").
-* **no_shipping** - Do not prompt buyers for a shipping address (e.g. no_shipping="1").
+* **shipping_preference** - The location from which the shipping address is derived (e.g. shipping_preference="NO_SHIPPING"). The default is GET_FROM_FILE. 
 * **layout** - The layout of the PayPal button (e.g. layout="horizontal"). Available layouts: vertical, horizontal. The default is vertical.
 * **color** - The color of the PayPal button (e.g. color="blue"). Available colors: gold, blue, silver, white and black. The default is gold.
 * **shape** - The shape of the PayPal button (e.g. shape="pill"). Available shapes: rect and pill. The default is rect.

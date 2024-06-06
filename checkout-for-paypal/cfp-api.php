@@ -6,8 +6,7 @@ add_action('wp_ajax_nopriv_coforpaypal_pp_api_capture_order', 'checkout_for_payp
 add_action('checkout_for_paypal_process_v2_order', 'checkout_for_paypal_process_v2_order_handler', 10, 2);
 
 function checkout_for_paypal_pp_api_create_order(){
-    //Get the order data from the request. 
-    //The data will be in JSON format string (not actual JSON object). We can json_decode it to get it in json object or array format.
+    //The data will be in JSON format string (not actual JSON object). By using json_decode it can be converted to a json object or array.
     $json_order_data = isset($_POST['data']) ? stripslashes_deep($_POST['data']) : '{}';
     $order_data_array = json_decode($json_order_data, true);
     $encoded_item_description = isset($order_data_array['purchase_units'][0]['description']) ? $order_data_array['purchase_units'][0]['description'] : '';
@@ -17,13 +16,11 @@ function checkout_for_paypal_pp_api_create_order(){
     //Set this decoded item name back to the order data.
     $order_data_array['purchase_units'][0]['description'] = $decoded_item_description;
     checkout_for_paypal_debug_log_array($order_data_array, true);
-
-    //If the data is empty, send the error response.
     if(empty($json_order_data)){
         wp_send_json(
             array(
                 'success' => false,
-                'err_msg'  => __( 'Empty data received.', 'checkout-for-paypal' ),
+                'err_msg' => __('Empty data received.', 'checkout-for-paypal'),
             )
         );
     }
@@ -31,13 +28,8 @@ function checkout_for_paypal_pp_api_create_order(){
     $currency_code = $options['currency_code'];
     $description = $order_data_array['purchase_units'][0]['description'];
     $amount = $order_data_array['purchase_units'][0]['amount']['value'];
-    $total_amount = $amount;
-    //$quantity = $order_data_array['purchase_units'][0]['items'][0]['quantity'];
-    //$currency_code = $order_data_array['purchase_units'][0]['amount']['currency_code'];
-    
+    $total_amount = $amount;   
     checkout_for_paypal_debug_log("Creating order data to send to PayPal: ", true);
-    // Create the order using the PayPal API call (pass the order data so we can use it in the API call)
-    //https://developer.paypal.com/docs/api/orders/v2/#orders_create
     $pp_api_order_data = [
         "intent" => "CAPTURE",
         "payment_source" => [
@@ -51,7 +43,7 @@ function checkout_for_paypal_pp_api_create_order(){
             [
                 "description" => $description,
                 "amount" => [
-                    "value" => (string) $total_amount, /* The grand total that will be charged for the transaction. Cast to string to make sure there is no precision issue */
+                    "value" => (string) $total_amount,
                     "currency_code" => $currency_code,
                 ],
             ]
@@ -83,23 +75,18 @@ function checkout_for_paypal_pp_api_create_order(){
         $pp_api_order_data['purchase_units'][0]['amount']['value'] = (string) $total_amount;
     }
     //
-    $json_encoded_pp_api_order_data = wp_json_encode($pp_api_order_data);
-    
-    checkout_for_paypal_debug_log_array($json_encoded_pp_api_order_data, true);
-    
+    $json_encoded_pp_api_order_data = wp_json_encode($pp_api_order_data);   
+    checkout_for_paypal_debug_log_array($json_encoded_pp_api_order_data, true);  
     $access_token = checkout_for_paypal_get_paypal_access_token();
     if (!$access_token) {
         checkout_for_paypal_debug_log('Access token could not be created using PayPal API', false);
         wp_send_json(
             array(
-                    'success' => false,
-                    'err_msg'  => __( 'Access token could not be created using PayPal API.', 'checkout-for-paypal' ),
+                'success' => false,
+                'err_msg' => __('Access token could not be created using PayPal API.', 'checkout-for-paypal'),
             )
         );
-        exit;
-        //return false;
     }
-
     $url = 'https://api-m.paypal.com/v2/checkout/orders';
     if(isset($options['test_mode']) && $options['test_mode'] == "1"){
         $url = 'https://api-m.sandbox.paypal.com/v2/checkout/orders';
@@ -119,10 +106,9 @@ function checkout_for_paypal_pp_api_create_order(){
         wp_send_json(
             array(
                 'success' => false,
-                'err_msg'  => __( 'Failed to create the order using PayPal API.', 'checkout-for-paypal' ),
+                'err_msg'  => __('Failed to create the order using PayPal API.', 'checkout-for-paypal'),
             )
         );
-        exit;
     }
 
     $body = wp_remote_retrieve_body($response);
@@ -132,22 +118,19 @@ function checkout_for_paypal_pp_api_create_order(){
         wp_send_json(
             array(
                 'success' => false,
-                'err_msg'  => __( 'Invalid response body from PayPal API order creation.', 'checkout-for-paypal' ),
+                'err_msg' => __('Invalid response body from PayPal API order creation.', 'checkout-for-paypal'),
             )
         );
-        exit;
     }
-     //The PayPal order ID returned by the API call.
     $data = json_decode($body);
     if(!isset($data) || empty($data)){
         checkout_for_paypal_debug_log('Invalid response data from PayPal API order creation', false);
         wp_send_json(
             array(
                 'success' => false,
-                'err_msg'  => __( 'Invalid response data from PayPal API order creation.', 'checkout-for-paypal' ),
+                'err_msg' => __('Invalid response data from PayPal API order creation.', 'checkout-for-paypal'),
             )
         );
-        exit;
     }
     checkout_for_paypal_debug_log('Response data from order creation', true);
     checkout_for_paypal_debug_log_array($data, true);
@@ -156,10 +139,9 @@ function checkout_for_paypal_pp_api_create_order(){
         wp_send_json(
             array(
                 'success' => false,
-                'err_msg'  => __( 'No order ID from PayPal API order creation.', 'checkout-for-paypal' ),
+                'err_msg' => __('No order ID from PayPal API order creation.', 'checkout-for-paypal'),
             )
         );
-        exit;
     }
     $paypal_order_id = $data->id;
     wp_send_json( 
@@ -169,7 +151,6 @@ function checkout_for_paypal_pp_api_create_order(){
             'additional_data' => array(),
         )
     );
-    exit;
 }
 
 function checkout_for_paypal_get_paypal_access_token() {
@@ -187,20 +168,18 @@ function checkout_for_paypal_get_paypal_access_token() {
         wp_send_json(
             array(
                 'success' => false,
-                'err_msg'  => __( 'Failed to create an access token using PayPal API.', 'checkout-for-paypal' ),
+                'err_msg' => __('Failed to create an access token using PayPal API.', 'checkout-for-paypal'),
             )
         );
-        exit;
     }
     if(!isset($secret_key) || empty($secret_key)){
         checkout_for_paypal_debug_log('No secret key. Access token cannot be created.', false);
         wp_send_json(
             array(
                 'success' => false,
-                'err_msg'  => __( 'Failed to create an access token using PayPal API.', 'checkout-for-paypal' ),
+                'err_msg' => __('Failed to create an access token using PayPal API.', 'checkout-for-paypal'),
             )
         );
-        exit;
     }
     $auth = base64_encode($client_id . ':' . $secret_key);
     checkout_for_paypal_debug_log('Creating access token', true);
@@ -219,10 +198,9 @@ function checkout_for_paypal_get_paypal_access_token() {
         wp_send_json(
             array(
                 'success' => false,
-                'err_msg'  => __( 'Failed to create an access token using PayPal API.', 'checkout-for-paypal' ),
+                'err_msg' => __('Failed to create an access token using PayPal API.', 'checkout-for-paypal'),
             )
         );
-        exit;
     }
 
     $body = wp_remote_retrieve_body($response);
@@ -232,10 +210,9 @@ function checkout_for_paypal_get_paypal_access_token() {
         wp_send_json(
             array(
                 'success' => false,
-                'err_msg'  => __( 'Invalid response body when creating an access token using PayPal API.', 'checkout-for-paypal' ),
+                'err_msg' => __('Invalid response body when creating an access token using PayPal API.', 'checkout-for-paypal'),
             )
         );
-        exit;
     }
     $data = json_decode($body);
     checkout_for_paypal_debug_log('Response data for access token', true);
@@ -245,68 +222,41 @@ function checkout_for_paypal_get_paypal_access_token() {
         wp_send_json(
             array(
                 'success' => false,
-                'err_msg'  => __( 'No valid access token from PayPal API response.', 'checkout-for-paypal' ),
+                'err_msg' => __('No valid access token from PayPal API response.', 'checkout-for-paypal'),
             )
         );
-        exit;
     }
 
     return $data->access_token;
 }
 
 function checkout_for_paypal_pp_api_capture_order(){
-    //Get the data from the request
     $json_pp_bn_data = isset( $_POST['data'] ) ? stripslashes_deep( $_POST['data'] ) : '{}';
-    //We need the data in an array format so lets convert it.
     $array_pp_bn_data = json_decode( $json_pp_bn_data, true );
-    //Logger::log_array_data($array_pp_bn_data, true);	
-
-    //Get the PayPal order_id from the data
     $order_id = isset( $array_pp_bn_data['order_id'] ) ? sanitize_text_field($array_pp_bn_data['order_id']) : '';
     checkout_for_paypal_debug_log('PayPal capture order request received - PayPal order ID: ' . $order_id, true);
-
     if(empty($order_id)){
         checkout_for_paypal_debug_log('Empty order ID received from PayPal capture order request', false);
         wp_send_json(
             array(
-                    'success' => false,
-                    'err_msg'  => __( 'Error! Empty order ID received for PayPal capture order request.', 'checkout-for-paypal' ),
-            )
-        );
-    }
-    /*
-    //Get the plugin specific data from the request
-    $json_cfp_data = isset( $_POST['cfp_data'] ) ? stripslashes_deep( $_POST['cfp_data'] ) : '{}';
-    //We need the data in an array format so lets convert it.
-    $array_cfp_data = json_decode( $json_cfp_data, true );		
-    //Logger::log_array_data($array_cfp_data, true);
-
-    if ( empty( $array_cfp_data ) ) {
-        wp_send_json(
-            array(
                 'success' => false,
-                'err_msg'  => __( 'Error! Empty plugin data received.', 'checkout-for-paypal' ),
+                'err_msg' => __('Error! Empty order ID received for PayPal capture order request.', 'checkout-for-paypal'),
             )
         );
     }
-    */
     checkout_for_paypal_debug_log("Creating data to send to PayPal for capturing the order: ", true);
-    //https://developer.paypal.com/docs/api/orders/v2/#orders_capture
     $api_params = array( 'order_id' => $order_id );
-    $json_api_params = json_encode($api_params);
-    
-    checkout_for_paypal_debug_log_array($json_api_params, true);
-    
+    $json_api_params = json_encode($api_params);  
+    checkout_for_paypal_debug_log_array($json_api_params, true);  
     $access_token = checkout_for_paypal_get_paypal_access_token();
     if (!$access_token) {
         checkout_for_paypal_debug_log('Access token could not be created using PayPal API', false);
         wp_send_json(
             array(
                 'success' => false,
-                'err_msg'  => __( 'Access token could not be created using PayPal API.', 'checkout-for-paypal' ),
+                'err_msg' => __('Access token could not be created using PayPal API.', 'checkout-for-paypal'),
             )
         );
-        exit;
     }
     $options = checkout_for_paypal_get_option();
     $url = 'https://api-m.paypal.com/v2/checkout/orders';
@@ -322,17 +272,15 @@ function checkout_for_paypal_pp_api_capture_order(){
         ),
         'body' => $json_api_params
     ));
-
     if (is_wp_error($response)) {
         checkout_for_paypal_debug_log('Error response', false);
         checkout_for_paypal_debug_log_array($response, false);
         wp_send_json(
             array(
                 'success' => false,
-                'err_msg'  => __('Failed to capture the order using PayPal API.', 'checkout-for-paypal'),
+                'err_msg' => __('Failed to capture the order using PayPal API.', 'checkout-for-paypal'),
             )
         );
-        exit;
     }
 
     $body = wp_remote_retrieve_body($response);
@@ -342,28 +290,24 @@ function checkout_for_paypal_pp_api_capture_order(){
         wp_send_json(
             array(
                 'success' => false,
-                'err_msg'  => __('Invalid response body from PayPal API order capture.', 'checkout-for-paypal'),
+                'err_msg' => __('Invalid response body from PayPal API order capture.', 'checkout-for-paypal'),
             )
         );
-        exit;
     }
-
     $capture_response_data = json_decode($body, true);
     if(!isset($capture_response_data) || empty($capture_response_data)){
         checkout_for_paypal_debug_log('Empty response data', false);
         wp_send_json(
             array(
                 'success' => false,
-                'err_msg'  => __('Empty response data from PayPal API order capture.', 'checkout-for-paypal'),
+                'err_msg' => __('Empty response data from PayPal API order capture.', 'checkout-for-paypal'),
             )
         );
-        exit;
     }
     checkout_for_paypal_debug_log('Response data from order capture', true);
     checkout_for_paypal_debug_log_array($capture_response_data, true);
-    //get order details
+    //
     checkout_for_paypal_debug_log('Retrieving order details', true);
-    //$options = checkout_for_paypal_get_option();
     $url = 'https://api-m.paypal.com/v2/checkout/orders';
     if(isset($options['test_mode']) && $options['test_mode'] == "1"){
         $url = 'https://api-m.sandbox.paypal.com/v2/checkout/orders';
@@ -375,19 +319,16 @@ function checkout_for_paypal_pp_api_capture_order(){
             'Content-Type' => 'application/json'
         ),
     ));
-
     if (is_wp_error($order_response)) {
         checkout_for_paypal_debug_log('Error response', false);
         checkout_for_paypal_debug_log_array($order_response, false);
         wp_send_json(
             array(
                 'success' => false,
-                'err_msg'  => __('Failed to retrieve order details using PayPal API.', 'checkout-for-paypal'),
+                'err_msg' => __('Failed to retrieve order details using PayPal API.', 'checkout-for-paypal'),
             )
         );
-        exit;
     }
-
     $order_body = wp_remote_retrieve_body($order_response);
     if(!isset($order_body) || empty($order_body)){
         checkout_for_paypal_debug_log('Error response from invalid body', false);
@@ -395,33 +336,25 @@ function checkout_for_paypal_pp_api_capture_order(){
         wp_send_json(
             array(
                 'success' => false,
-                'err_msg'  => __('Invalid response body from retrieving order details using PayPal API.', 'checkout-for-paypal'),
+                'err_msg' => __('Invalid response body from retrieving order details using PayPal API.', 'checkout-for-paypal'),
             )
         );
-        exit;
     }
-
     $order_details_data = json_decode($order_body, true);
     if(!isset($order_details_data) || empty($order_details_data)){
         checkout_for_paypal_debug_log('Empty response data from retrieving order details', false);
         wp_send_json(
             array(
                 'success' => false,
-                'err_msg'  => __('Empty response data from PayPal API order details.', 'checkout-for-paypal'),
+                'err_msg' => __('Empty response data from PayPal API order details.', 'checkout-for-paypal'),
             )
         );
-        exit;
     }
     checkout_for_paypal_debug_log('Response data from retrieving order details', true);
     checkout_for_paypal_debug_log_array($order_details_data, true);
     //
     do_action('checkout_for_paypal_process_v2_order', $capture_response_data, $order_details_data);
-    wp_send_json( 
-        array( 
-            'success' => true,
-        )
-    );  
-    exit;
+    wp_send_json_success();  
 }
 
 function checkout_for_paypal_process_v2_order_handler($capture_response_data, $order_details_data)
