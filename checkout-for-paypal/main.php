@@ -1,7 +1,7 @@
 <?php
 /*
   Plugin Name: Checkout for PayPal
-  Version: 1.0.27
+  Version: 1.0.28
   Plugin URI: https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/  
   Author: naa986
   Author URI: https://noorsplugin.com/
@@ -10,12 +10,12 @@
   Domain Path: /languages
  */
 
-if (!defined('ABSPATH'))
+if(!defined('ABSPATH')){
     exit;
-
+}
 class CHECKOUT_FOR_PAYPAL {
     
-    var $plugin_version = '1.0.27';
+    var $plugin_version = '1.0.28';
     var $db_version = '1.0.2';
     var $plugin_url;
     var $plugin_path;
@@ -41,6 +41,8 @@ class CHECKOUT_FOR_PAYPAL {
     function plugin_includes() {
         include_once('checkout-for-paypal-order.php');
         include_once('cfp-email.php');
+        include_once('cfp-api.php');
+        include_once('cfp-old.php');
         if(is_admin()){
             include_once('addons/checkout-for-paypal-addons-menu.php');
         }
@@ -55,9 +57,11 @@ class CHECKOUT_FOR_PAYPAL {
         add_action('init', array($this, 'plugin_init'));
         add_filter('manage_coforpaypal_order_posts_columns', 'checkout_for_paypal_order_columns');
         add_action('manage_coforpaypal_order_posts_custom_column', 'checkout_for_paypal_custom_column', 10, 2);
+        /* start of older integration */
         add_action('wp_ajax_coforpaypal_ajax_process_order', 'checkout_for_paypal_ajax_process_order');
         add_action('wp_ajax_nopriv_coforpaypal_ajax_process_order', 'checkout_for_paypal_ajax_process_order');
         add_action('checkout_for_paypal_process_order', 'checkout_for_paypal_process_order_handler');
+        /* end of older integration */
         add_shortcode('checkout_for_paypal', 'checkout_for_paypal_button_handler');
     }
 
@@ -93,15 +97,23 @@ class CHECKOUT_FOR_PAYPAL {
     }
 
     function admin_notice() {
+        $message = '';
         if (CHECKOUT_FOR_PAYPAL_DEBUG) {  //debug is enabled. Check to make sure log file is writable
             $log_file = CHECKOUT_FOR_PAYPAL_DEBUG_LOG_PATH;
-            if(!file_exists($log_file)){
-                return;
-            }
-            if(!is_writeable($log_file)){
-                echo '<div class="updated"><p>' . __('Checkout for PayPal Debug log file is not writable. Please check to make sure that it has the correct file permission (ideally 644). Otherwise the plugin will not be able to write to the log file. The log file can be found in the root directory of the plugin - ', 'checkout-for-paypal') . '<code>' . CHECKOUT_FOR_PAYPAL_URL . '</code></p></div>';
+            if(file_exists($log_file) && !is_writeable($log_file)){
+                $message .= '<div class="error"><p>' . __('Checkout for PayPal Debug log file is not writable. Please check to make sure that it has the correct file permission (ideally 644). Otherwise the plugin will not be able to write to the log file. The log file can be found in the root directory of the plugin - ', 'checkout-for-paypal') . '<code>' . CHECKOUT_FOR_PAYPAL_URL . '</code></p></div>';
             }
         }
+        $options = checkout_for_paypal_get_option();
+        if(isset($options['app_client_id']) && !empty($options['app_client_id'])){
+            if(!isset($options['app_secret_key']) || empty($options['app_secret_key'])){
+                $message .= '<div class="error"><p>' . __('Checkout for PayPal integration requires an update. Please update your API credentials in the settings and test to ensure everything is working.', 'checkout-for-paypal').'</p></div>';
+            }
+        }
+        if(empty($message)){
+            return;
+        }
+        echo $message;
     }
 
     function plugin_init() {
@@ -283,9 +295,22 @@ class CHECKOUT_FOR_PAYPAL {
             if (!wp_verify_nonce($nonce, 'checkout_for_paypal_general_settings')) {
                 wp_die(__('Error! Nonce Security Check Failed! please save the general settings again.', 'checkout-for-paypal'));
             }
+            $test_mode = (isset($_POST['test_mode']) && $_POST['test_mode'] == '1') ? '1' : '';
+            $app_sandbox_client_id = '';
+            if(isset($_POST['app_sandbox_client_id']) && !empty($_POST['app_sandbox_client_id'])){
+                $app_sandbox_client_id = sanitize_text_field($_POST['app_sandbox_client_id']);
+            }
+            $app_sandbox_secret_key = '';
+            if(isset($_POST['app_sandbox_secret_key']) && !empty($_POST['app_sandbox_secret_key'])){
+                $app_sandbox_secret_key = sanitize_text_field($_POST['app_sandbox_secret_key']);
+            }
             $app_client_id = '';
             if(isset($_POST['app_client_id']) && !empty($_POST['app_client_id'])){
                 $app_client_id = sanitize_text_field($_POST['app_client_id']);
+            }
+            $app_secret_key = '';
+            if(isset($_POST['app_secret_key']) && !empty($_POST['app_secret_key'])){
+                $app_secret_key = sanitize_text_field($_POST['app_secret_key']);
             }
             $currency_code = '';
             if(isset($_POST['currency_code']) && !empty($_POST['currency_code'])){
@@ -313,7 +338,11 @@ class CHECKOUT_FOR_PAYPAL {
                 $disable_funding = sanitize_text_field($_POST['disable_funding']);
             }
             $paypal_options = array();
+            $paypal_options['test_mode'] = $test_mode;
+            $paypal_options['app_sandbox_client_id'] = $app_sandbox_client_id;
+            $paypal_options['app_sandbox_secret_key'] = $app_sandbox_secret_key;
             $paypal_options['app_client_id'] = $app_client_id;
+            $paypal_options['app_secret_key'] = $app_secret_key;
             $paypal_options['currency_code'] = $currency_code;
             $paypal_options['return_url'] = $return_url;
             $paypal_options['cancel_url'] = $cancel_url;
@@ -325,6 +354,13 @@ class CHECKOUT_FOR_PAYPAL {
             echo '</strong></p></div>';
         }
         $paypal_options = checkout_for_paypal_get_option();
+        $test_mode = '';
+        if(isset($paypal_options['test_mode']) && !empty($paypal_options['test_mode'])){
+            $test_mode = $paypal_options['test_mode'];
+        }
+        $app_sandbox_client_id = (isset($paypal_options['app_sandbox_client_id']) && !empty($paypal_options['app_sandbox_client_id'])) ? $paypal_options['app_sandbox_client_id'] : '';
+        $app_sandbox_secret_key = (isset($paypal_options['app_sandbox_secret_key']) && !empty($paypal_options['app_sandbox_secret_key'])) ? $paypal_options['app_sandbox_secret_key'] : '';
+        $app_secret_key = (isset($paypal_options['app_secret_key']) && !empty($paypal_options['app_secret_key'])) ? $paypal_options['app_secret_key'] : '';
         $cancel_url = (isset($paypal_options['cancel_url']) && !empty($paypal_options['cancel_url'])) ? $paypal_options['cancel_url'] : '';
         $locale = get_option('checkout_for_paypal_locale');
         if(!isset($locale) || empty($locale)){
@@ -357,11 +393,37 @@ class CHECKOUT_FOR_PAYPAL {
                             <table class="form-table">
 
                                 <tbody>
-
+                                    
                                     <tr valign="top">
-                                        <th scope="row"><label for="app_client_id"><?php _e('Client ID', 'checkout-for-paypal');?></label></th>
+                                        <th scope="row"><?php _e('Test mode', 'checkout-for-paypal');?></th>
+                                        <td> <fieldset><legend class="screen-reader-text"><span>Test mode</span></legend><label for="test_mode">
+                                                    <input name="test_mode" type="checkbox" id="test_mode" <?php if ($test_mode == '1') echo ' checked="checked"'; ?> value="1">
+                                                    <?php _e("Check this option to run transactions in test mode with your PayPal sandbox API credentials.", 'checkout-for-paypal');?></label>
+                                            </fieldset></td>
+                                    </tr>
+                                    
+                                    <tr valign="top">
+                                        <th scope="row"><label for="app_sandbox_client_id"><?php _e('Sandbox Client ID', 'checkout-for-paypal');?></label></th>
+                                        <td><input name="app_sandbox_client_id" type="text" id="app_sandbox_client_id" value="<?php echo esc_attr($app_sandbox_client_id); ?>" class="regular-text">
+                                            <p class="description"><?php _e('The sandbox client ID for your PayPal REST API app', 'checkout-for-paypal');?></p></td>
+                                    </tr>
+                                    
+                                    <tr valign="top">
+                                        <th scope="row"><label for="app_sandbox_secret_key"><?php _e('Sandbox Secret Key', 'checkout-for-paypal');?></label></th>
+                                        <td><input name="app_sandbox_secret_key" type="text" id="app_sandbox_secret_key" value="<?php echo esc_attr($app_sandbox_secret_key); ?>" class="regular-text">
+                                            <p class="description"><?php _e('The sandbox secret key for your PayPal REST API app', 'checkout-for-paypal');?></p></td>
+                                    </tr>
+                                    
+                                    <tr valign="top">
+                                        <th scope="row"><label for="app_client_id"><?php _e('Live Client ID', 'checkout-for-paypal');?></label></th>
                                         <td><input name="app_client_id" type="text" id="app_client_id" value="<?php echo esc_attr($paypal_options['app_client_id']); ?>" class="regular-text">
                                             <p class="description"><?php _e('The client ID for your PayPal REST API app', 'checkout-for-paypal');?></p></td>
+                                    </tr>
+                                    
+                                    <tr valign="top">
+                                        <th scope="row"><label for="app_secret_key"><?php _e('Live Secret Key', 'checkout-for-paypal');?></label></th>
+                                        <td><input name="app_secret_key" type="text" id="app_secret_key" value="<?php echo esc_attr($app_secret_key); ?>" class="regular-text">
+                                            <p class="description"><?php _e('The secret key for your PayPal REST API app', 'checkout-for-paypal');?></p></td>
                                     </tr>
 
                                     <tr valign="top">
@@ -698,6 +760,22 @@ $GLOBALS['checkout_for_paypal'] = new CHECKOUT_FOR_PAYPAL();
 
 function checkout_for_paypal_button_handler($atts) {
     $atts = array_map('sanitize_text_field', $atts);
+    $id = uniqid();
+    $atts['id'] = $id;
+    $options = checkout_for_paypal_get_option();
+    //check older integration
+    if(isset($options['app_client_id']) && !empty($options['app_client_id'])){
+        if(!isset($options['app_secret_key']) || empty($options['app_secret_key'])){
+            $button_code = '';
+            $button_code = apply_filters('checkout_for_paypal_button', $button_code, $atts);
+            if(!empty($button_code)){
+                return $button_code;
+            }
+            return checkout_for_paypal_old_button_handler($atts);
+        }
+    }
+    //
+    $button_code = '';
     $description = '';
     /*
     if(!isset($atts['item_description']) || empty($atts['item_description'])){
@@ -714,7 +792,6 @@ function checkout_for_paypal_button_handler($atts) {
     if($dynamic_button){
         $description = apply_filters('cfp_dynamic_button_description', $description, $atts);
     }
-    $options = checkout_for_paypal_get_option();
     $currency = $options['currency_code'];
     /* There seems to be a bug where currency override doesn't work on a per button basis
     if(isset($atts['currency']) && !empty($atts['currency'])){
@@ -737,13 +814,9 @@ function checkout_for_paypal_button_handler($atts) {
     if(!empty($cancel_url)){
         $cancel_output = 'window.location.replace("'.$cancel_url.'");';
     }
-    $no_shipping = '';
-    if(isset($atts['no_shipping']) && $atts['no_shipping']=='1'){
-        $no_shipping .= <<<EOT
-        application_context: {
-            shipping_preference: "NO_SHIPPING",
-        },        
-EOT;
+    $shipping_preference = 'GET_FROM_FILE';
+    if(isset($atts['shipping_preference']) && !empty($atts['shipping_preference'])){
+        $shipping_preference = $atts['shipping_preference'];
     }
     $width = '300';
     if(isset($atts['width']) && !empty($atts['width'])){
@@ -770,13 +843,7 @@ EOT;
     if(isset($atts['shape']) && $atts['shape'] == 'pill'){
         $shape = 'pill';
     }
-    $id = uniqid();
-    $atts['id'] = $id;
-    $button_code = '';
-    $button_code = apply_filters('checkout_for_paypal_button', $button_code, $atts);
-    if(!empty($button_code)){
-        return $button_code;
-    }
+    //
     if(!isset($atts['amount']) || !is_numeric($atts['amount'])){
         return __('You need to provide a valid price amount', 'checkout-for-paypal');
     }
@@ -794,6 +861,29 @@ EOT;
     $button_id = 'coforpaypal-button-'.$id;
     $button_container_id = 'coforpaypal-button-container-'.$id;
     $button_code = '<div id="'.esc_attr($button_container_id).'" style="'.esc_attr('max-width: '.$width.'px;').'">';
+    //
+    $description_code = '<input class="coforpaypal_description_input" type="hidden" name="description" value="'.esc_attr($description).'" required>';
+    $description_queryselector = "document.querySelector('#{$button_container_id} .coforpaypal_description_input')";
+    $variable_price_desc_code = '';
+    $variable_price_desc_code = apply_filters('coforpaypal_variable_price_description', $variable_price_desc_code, $button_code, $atts);
+    if(!empty($variable_price_desc_code)){
+        $description_code = $variable_price_desc_code;
+        $description_queryselector = "document.querySelector('#{$button_container_id} .coforpaypal_variable_price_description_input')";
+    }
+    $button_code .= $description_code;
+    $amount_code = '<input class="coforpaypal_amount_input" type="hidden" name="amount" value="'.esc_attr($amount).'" required>';
+    $amount_queryselector = "document.querySelector('#{$button_container_id} .coforpaypal_amount_input')";
+    $variable_price_code = '';
+    $variable_price_code = apply_filters('coforpaypal_variable_price', $variable_price_code, $button_code, $atts);
+    if(!empty($variable_price_code)){
+        $amount_code = $variable_price_code;
+        $amount_queryselector = "document.querySelector('#{$button_container_id} .coforpaypal_variable_price_input')";
+        if(isset($atts['variable_prices']) && !empty($atts['variable_prices'])) {
+            $amount_queryselector = "document.querySelector('#{$button_container_id} .coforpaypal_variable_price_select')";
+        }
+    }
+    $button_code .= $amount_code;
+    //
     $button_code .= '<div id="'.esc_attr($button_id).'" style="'.esc_attr('max-width: '.$width.'px;').'"></div>';
     $button_code .= '</div>';
     $ajax_url = admin_url('admin-ajax.php');
@@ -802,17 +892,29 @@ EOT;
     jQuery(document).ready(function() {
             
         function initPayPalButton{$id}() {
-            var description = "{$esc_js($description)}";
-            var amount = "{$esc_js($amount)}";
+            var description = {$description_queryselector};
+            var amount = {$amount_queryselector};
             var totalamount = 0;
             var shipping = "{$esc_js($shipping)}";
             var currency = "{$esc_js($currency)}";
             var break_down_amount = {$esc_js($break_down_amount)};
+            var elArr = [description, amount];
             
             var purchase_units = [];
             purchase_units[0] = {};
             purchase_units[0].amount = {};
             
+            function validate(event) {
+                if(event.value.length === 0){
+                    return false;
+                }
+                if(event.name == "amount"){
+                    if(!isNaN(Number(event.value)) && Number(event.value) < 0.1){
+                        return false;
+                    }
+                }
+                return true;
+            }
             paypal.Buttons({
                 style: {
                     layout: '{$layout}',
@@ -820,12 +922,28 @@ EOT;
                     shape: '{$shape}'
                 },
                 onInit: function (data, actions) {
-
-                },  
-                
+                    actions.disable();
+                    var validated = true;
+                    elArr.forEach(function (item) {
+                        if(!validate(item)){
+                            validated = false;    
+                        }
+                        item.addEventListener('change', function (event) {
+                            var result = elArr.every(validate);
+                            if (result) {
+                                actions.enable();
+                            } else {
+                                actions.disable();
+                            }
+                        });
+                    });
+                    if(validated){
+                        actions.enable();
+                    }
+                },             
                 onClick: function () {
-                    purchase_units[0].description = description;
-                    purchase_units[0].amount.value = amount;
+                    purchase_units[0].description = description.value;
+                    purchase_units[0].amount.value = amount.value;
                     if(break_down_amount){
                         purchase_units[0].amount.breakdown = {};
                         purchase_units[0].amount.breakdown.item_total = {};
@@ -843,32 +961,78 @@ EOT;
                     }
                 },    
                     
-                createOrder: function(data, actions) {
-                    return actions.order.create({
+                createOrder: async function(data, actions) {
+                    var order_data = {
+                        intent: 'CAPTURE',
+                        payment_source: {
+                            paypal: {
+                                experience_context: {
+                                    payment_method_preference: 'IMMEDIATE_PAYMENT_REQUIRED',
+                                    shipping_preference: '{$shipping_preference}',
+                                }
+                            }
+                        },
                         purchase_units: purchase_units,
-                        $no_shipping    
-                    });
+                    };
+                    let post_data = 'action=coforpaypal_pp_api_create_order&data=' + encodeURIComponent(JSON.stringify(order_data));
+                    try {                
+                        const response = await fetch('{$ajax_url}', {
+                            method: "post",
+                            headers: {
+                                    'Content-Type': 'application/x-www-form-urlencoded'
+                            },
+                            body: post_data
+                        });
+
+                        const response_data = await response.json();
+
+                        if (response_data.order_id) {
+                            console.log('Create-order API call to PayPal completed successfully.');
+                            return response_data.order_id;
+                        } else {
+                            const error_message = response_data.err_msg
+                            console.error('Error occurred during create-order call to PayPal. ' + error_message);
+                            throw new Error(error_message);//This will trigger the alert in the "catch" block below.
+                        }
+                    } catch (error) {
+                        console.error(error.message);
+                        alert('Could not initiate PayPal Checkout - ' + error.message);
+                    }
                 },
                             
-                onApprove: function(data, actions) {
-                    return actions.order.capture().then(function(details) {
-                        //console.log('Transaction completed by ' + details.payer.name.given_name);
-                        //console.log(details);
-                        var data = {
-                            'action': "coforpaypal_ajax_process_order",
-                            'coforpaypal_ajax_process_order': "1",
-                            'details': details 
-                        };  
-                        jQuery.ajax({
-                            url : "{$ajax_url}",
-                            type : "POST",
-                            data : data,
-                            success: function(response) {
-                                //console.log(response);
-                                $return_output
-                            }
+                onApprove: async function(data, actions) {
+                        
+                    console.log('Sending AJAX request for capture-order call.');
+                    let pp_bn_data = {};
+                    pp_bn_data.order_id = data.orderID;//The orderID is the ID of the order that was created in the createOrder method.
+                    let wpec_data = parent.data;//parent.data is the data object that was passed to the ppecHandler constructor.
+                    //console.log('WPEC data (JSON): ' + JSON.stringify(wpec_data));
+
+                    let post_data = 'action=coforpaypal_pp_api_capture_order&data=' + encodeURIComponent(JSON.stringify(pp_bn_data));
+                    try {
+                        const response = await fetch('{$ajax_url}', {
+                            method: "post",
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded'
+                            },
+                            body: post_data
                         });
-                    });
+
+                        const response_data = await response.json();
+                        if (response_data.success) {
+                            console.log('Capture-order API call to PayPal completed successfully.');
+                            //return response_data.order_id;
+                            $return_output
+                        } else {
+                            const error_message = response_data.err_msg
+                            console.error('Error: ' + error_message);
+                            throw new Error(error_message);//This will trigger the alert in the "catch" block below.
+                        }
+
+                    } catch (error) {
+                        console.error(error);
+                        alert('Order could not be captured. Error: ' + JSON.stringify(error));
+                    }
                 },
                                     
                 onError: function (err) {
@@ -887,288 +1051,6 @@ EOT;
 EOT;
     
     return $button_code;
-}
-
-function checkout_for_paypal_ajax_process_order(){
-    checkout_for_paypal_debug_log('Received a response from frontend', true);
-    if(!isset($_POST['coforpaypal_ajax_process_order'])){
-        wp_die();
-    }
-    checkout_for_paypal_debug_log('Received a notification from PayPal', true);
-    $post_data = $_POST;
-    array_walk_recursive($post_data, function(&$v) { $v = sanitize_text_field($v); });
-    checkout_for_paypal_debug_log_array($post_data, true);
-    if(!isset($post_data['details'])){
-        checkout_for_paypal_debug_log("No transaction details. This payment cannot be processed.", false);
-        wp_die();
-    }
-    //
-    do_action('checkout_for_paypal_process_order', $post_data);
-    wp_die();
-}
-
-function checkout_for_paypal_process_order_handler($post_data)
-{
-    $details = $post_data['details'];
-    if(!isset($details['payer'])){
-        checkout_for_paypal_debug_log("No payer data. This payment cannot be processed.", false);
-        return;
-    }
-    $payer = $details['payer'];
-    if(!isset($details['purchase_units'][0])){
-        checkout_for_paypal_debug_log("No purchase unit data. This payment cannot be processed.", false);
-        return;
-    }
-    $purchase_units = $details['purchase_units'][0];
-    if(!isset($purchase_units['payments']['captures'][0])){
-        checkout_for_paypal_debug_log("No payment capture data. This payment cannot be processed.", false);
-        return;
-    }
-    $capture = $purchase_units['payments']['captures'][0];
-    $payment_status = '';
-    if (isset($capture['status'])) {
-        $payment_status = sanitize_text_field($capture['status']);
-        checkout_for_paypal_debug_log("Payment Status - " . $payment_status, true);
-    }
-    if (isset($capture['status']['status_details']['reason'])) {
-        $status_reason = sanitize_text_field($capture['status']['status_details']['reason']);
-        checkout_for_paypal_debug_log("Reason - " . $status_reason, true);
-    }
-    $payment_data = array();
-    $payment_data['txn_id'] = '';
-    if (isset($capture['id'])) {
-        $payment_data['txn_id'] = sanitize_text_field($capture['id']);
-    } else {
-        checkout_for_paypal_debug_log("No transaction ID. This payment cannot be processed.", false);
-        return;
-    }
-    $args = array(
-        'post_type' => 'coforpaypal_order',
-        'meta_query' => array(
-            array(
-                'key' => '_txn_id',
-                'value' => $payment_data['txn_id'],
-                'compare' => '=',
-            ),
-        ),
-    );
-    $query = new WP_Query($args);
-    if ($query->have_posts()) {  //a record already exists
-        checkout_for_paypal_debug_log("An order with this transaction ID already exists. This payment will not be processed.", false);
-        return;
-    } 
-    $payer_name = '';
-    $payment_data['given_name'] = '';
-    if (isset($payer['name']['given_name'])) {
-        $payment_data['given_name'] = sanitize_text_field($payer['name']['given_name']);
-        $payer_name .= $payment_data['given_name'];
-    }
-    $payment_data['surname'] = '';
-    if (isset($payer['name']['surname'])) {
-        $payment_data['surname'] = sanitize_text_field($payer['name']['surname']);
-        $payer_name .= ' '.$payment_data['surname'];
-    }
-    $payment_data['payer_email'] = '';
-    if (isset($payer['email_address'])) {
-        $payment_data['payer_email'] = sanitize_email($payer['email_address']);
-    }
-    $payment_data['phone_number'] = '';
-    if(isset($payer['phone']['phone_number']['national_number'])){
-        $payment_data['phone_number'] = sanitize_text_field($payer['phone']['phone_number']['national_number']);
-    }
-    $payment_data['description'] = '';
-    if (isset($purchase_units['description'])) {
-        $payment_data['description'] = sanitize_text_field($purchase_units['description']);
-    }
-    $payment_data['amount'] = '';
-    if (isset($purchase_units['amount']['value'])) {
-        $payment_data['amount'] = sanitize_text_field($purchase_units['amount']['value']);
-    }
-    $payment_data['currency_code'] = '';
-    if (isset($purchase_units['amount']['currency_code'])) {
-        $payment_data['currency_code'] = sanitize_text_field($purchase_units['amount']['currency_code']);
-    }
-    $payment_data['item_total'] = $payment_data['amount'];
-    if(isset($purchase_units['amount']['breakdown']['item_total']['value'])){
-        $payment_data['item_total'] = sanitize_text_field($purchase_units['amount']['breakdown']['item_total']['value']);
-    }
-    $payment_data['shipping'] = '';
-    if(isset($purchase_units['amount']['breakdown']['shipping']['value'])){
-        $payment_data['shipping'] = sanitize_text_field($purchase_units['amount']['breakdown']['shipping']['value']);
-    }
-    $payment_data['shipping_name'] = '';
-    if (isset($purchase_units['shipping']['name'])) {
-        $payment_data['shipping_name'] = isset($purchase_units['shipping']['name']['full_name']) ? sanitize_text_field($purchase_units['shipping']['name']['full_name']) : '';
-    }
-    /*
-    if(empty($ship_to_name)){
-        $ship_to_name = $first_name.' '.$last_name;
-    }
-    */
-    $ship_to = '';
-    $shipping_address = '';
-    if (isset($purchase_units['shipping']['address'])) {
-        $address_street = isset($purchase_units['shipping']['address']['address_line_1']) ? sanitize_text_field($purchase_units['shipping']['address']['address_line_1']) : '';
-        $ship_to .= !empty($address_street) ? $address_street.'<br />' : '';
-        $shipping_address .= !empty($address_street) ? $address_street.', ' : '';
-        
-        $address_city = isset($purchase_units['shipping']['address']['admin_area_2']) ? sanitize_text_field($purchase_units['shipping']['address']['admin_area_2']) : '';
-        $ship_to .= !empty($address_city) ? $address_city.', ' : '';
-        $shipping_address .= !empty($address_city) ? $address_city.', ' : '';
-        
-        $address_state = isset($purchase_units['shipping']['address']['admin_area_1']) ? sanitize_text_field($purchase_units['shipping']['address']['admin_area_1']) : '';
-        $ship_to .= !empty($address_state) ? $address_state.' ' : '';
-        $shipping_address .= !empty($address_state) ? $address_state.' ' : '';
-        
-        $address_zip = isset($purchase_units['shipping']['address']['postal_code']) ? sanitize_text_field($purchase_units['shipping']['address']['postal_code']) : '';
-        $ship_to .= !empty($address_zip) ? $address_zip.'<br />' : '';
-        $shipping_address .= !empty($address_zip) ? $address_zip.', ' : '';
-        
-        $address_country = isset($purchase_units['shipping']['address']['country_code']) ? sanitize_text_field($purchase_units['shipping']['address']['country_code']) : '';
-        $ship_to .= !empty($address_country) ? $address_country : '';
-        $shipping_address .= !empty($address_country) ? $address_country : '';
-    }
-    $payment_data['shipping_address'] = $shipping_address;
-    $checkout_for_paypal_order = array(
-        'post_title' => 'order',
-        'post_type' => 'coforpaypal_order',
-        'post_content' => '',
-        'post_status' => 'publish',
-    );
-    checkout_for_paypal_debug_log("Inserting order information", true);
-    $post_id = wp_insert_post($checkout_for_paypal_order, true);
-    if (is_wp_error($post_id)) {
-        checkout_for_paypal_debug_log("Error inserting order information: ".$post_id->get_error_message(), false);
-        return;
-    }
-    if (!$post_id) {
-        checkout_for_paypal_debug_log("Order information could not be inserted", false);
-        return;
-    }
-    $post_updated = false;
-    if ($post_id > 0) {
-        $post_content = '';
-        if(!empty($payment_data['description'])){
-            $post_content .= '<strong>Item Description:</strong> '.$payment_data['description'].'<br />';
-        }
-        if(!empty($payment_data['amount'])){
-            $post_content .= '<strong>Amount:</strong> '.$payment_data['amount'].'<br />';
-        }
-        if(!empty($payment_data['item_total'])){
-            $post_content .= '<strong>Item Total:</strong> '.$payment_data['item_total'].'<br />';
-        }
-        if(!empty($payment_data['shipping'])){
-            $post_content .= '<strong>Shipping:</strong> '.$payment_data['shipping'].'<br />';
-        }
-        if(!empty($payment_data['currency_code'])){
-            $post_content .= '<strong>Currency:</strong> '.$payment_data['currency_code'].'<br />';
-        }
-        if(!empty($payer_name)){
-            $post_content .= '<strong>Payer Name:</strong> '.$payer_name.'<br />';
-        }
-        if(!empty($payment_data['payer_email'])){
-            $post_content .= '<strong>Email:</strong> '.$payment_data['payer_email'].'<br />';
-        }
-        if(!empty($payment_data['phone_number'])){
-            $post_content .= '<strong>Phone Number:</strong> '.$payment_data['phone_number'].'<br />';
-        }
-        if(!empty($ship_to)){
-            $ship_to = '<h2>'.__('Ship To', 'checkout-for-paypal').'</h2><br />'.$payment_data['shipping_name'].'<br />'.$ship_to.'<br />';
-        }
-        $post_content .= $ship_to;
-        $post_content .= '<h2>'.__('Payment Data', 'checkout-for-paypal').'</h2><br />';
-        $post_content .= print_r($details, true);
-        $updated_post = array(
-            'ID' => $post_id,
-            'post_title' => $post_id,
-            'post_type' => 'coforpaypal_order',
-            'post_content' => $post_content
-        );
-        $updated_post_id = wp_update_post($updated_post, true);
-        if (is_wp_error($updated_post_id)) {
-            checkout_for_paypal_debug_log("Error updating order information: ".$updated_post_id->get_error_message(), false);
-            return;
-        }
-        if (!$updated_post_id) {
-            checkout_for_paypal_debug_log("Order information could not be updated", false);
-            return;
-        }
-        if ($updated_post_id > 0) {
-            $post_updated = true;
-        }
-    }
-    //save order information
-    if ($post_updated) {
-        update_post_meta($post_id, '_txn_id', $payment_data['txn_id']);
-        update_post_meta($post_id, '_first_name', $payment_data['given_name']);
-        update_post_meta($post_id, '_last_name', $payment_data['surname']);
-        update_post_meta($post_id, '_email', $payment_data['payer_email']);
-        update_post_meta($post_id, '_mc_gross', $payment_data['amount']);
-        update_post_meta($post_id, '_payment_status', $payment_status);
-        checkout_for_paypal_debug_log("Order information updated", true);
-        
-        $email_options = checkout_for_paypal_get_email_option();
-        add_filter('wp_mail_from', 'checkout_for_paypal_set_email_from');
-        add_filter('wp_mail_from_name', 'checkout_for_paypal_set_email_from_name');
-        if(isset($email_options['purchase_email_enabled']) && !empty($email_options['purchase_email_enabled']) && !empty($payment_data['payer_email'])){
-            $subject = $email_options['purchase_email_subject'];
-            $type = $email_options['purchase_email_type'];
-            $body = $email_options['purchase_email_body'];
-            $body = checkout_for_paypal_do_email_tags($payment_data, $body);
-            if($type == "html"){
-                add_filter('wp_mail_content_type', 'checkout_for_paypal_set_html_email_content_type');
-                $body = apply_filters('checkout_for_paypal_email_body_wpautop', true) ? wpautop($body) : $body;
-            }
-            checkout_for_paypal_debug_log("Sending a purchase receipt email to ".$payment_data['payer_email'], true);
-            $mail_sent = wp_mail($payment_data['payer_email'], $subject, $body);
-            if($type == "html"){
-                remove_filter('wp_mail_content_type', 'checkout_for_paypal_set_html_email_content_type');
-            }
-            if($mail_sent == true){
-                checkout_for_paypal_debug_log("Email was sent successfully by WordPress", true);
-            }
-            else{
-                checkout_for_paypal_debug_log("Email could not be sent by WordPress", false);
-            }
-        }
-        if(isset($email_options['sale_notification_email_enabled']) && !empty($email_options['sale_notification_email_enabled']) && !empty($email_options['sale_notification_email_recipient'])){
-            $subject = $email_options['sale_notification_email_subject'];
-            $type = $email_options['sale_notification_email_type'];
-            $body = $email_options['sale_notification_email_body'];
-            $body = checkout_for_paypal_do_email_tags($payment_data, $body);
-            if($type == "html"){
-                add_filter('wp_mail_content_type', 'checkout_for_paypal_set_html_email_content_type');
-                $body = apply_filters('checkout_for_paypal_email_body_wpautop', true) ? wpautop($body) : $body;
-            }
-            $email_recipients = explode(",", $email_options['sale_notification_email_recipient']);
-            foreach($email_recipients as $email_recipient){
-                $to = sanitize_email($email_recipient);
-                if(is_email($to)){
-                    checkout_for_paypal_debug_log("Sending a sale notification email to ".$to, true);
-                    $mail_sent = wp_mail($to, $subject, $body);
-                    if($mail_sent == true){
-                        checkout_for_paypal_debug_log("Email was sent successfully by WordPress", true);
-                    }
-                    else{
-                        checkout_for_paypal_debug_log("Email could not be sent by WordPress", false);
-                    }
-                }
-            }
-            if($type == "html"){
-                remove_filter('wp_mail_content_type', 'checkout_for_paypal_set_html_email_content_type');
-            }
-        }
-        remove_filter('wp_mail_from', 'checkout_for_paypal_set_email_from');
-        remove_filter('wp_mail_from_name', 'checkout_for_paypal_set_email_from_name');
-        
-        $details['post_order_id'] = $post_id;
-        do_action('checkout_for_paypal_order_processed', $details);
-    } else {
-        checkout_for_paypal_debug_log("Order information could not be updated", false);
-        return;
-    }
-    checkout_for_paypal_debug_log("Payment processing completed", true, true);   
-    return;
 }
 
 function checkout_for_paypal_get_option(){
@@ -1195,7 +1077,11 @@ function checkout_for_paypal_update_option($new_options){
 
 function checkout_for_paypal_get_empty_options_array(){
     $options = array();
+    $options['test_mode'] = '';
+    $options['app_sandbox_client_id'] = '';
+    $options['app_sandbox_secret_key'] = '';
     $options['app_client_id'] = '';
+    $options['app_secret_key'] = '';
     $options['currency_code'] = '';
     $options['return_url'] = '';
     $options['cancel_url'] = '';

@@ -4,7 +4,7 @@ Donate link: https://noorsplugin.com/
 Tags: paypal, checkout, e-commerce, ecommerce, payments
 Requires at least: 5.5
 Tested up to: 6.5
-Stable tag: 1.0.27
+Stable tag: 1.0.28
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -58,6 +58,7 @@ Checkout for PayPal supports PayPal Sandbox. PayPal Sandbox is a simulation envi
 Once the plugin is installed go to the settings menu to configure some default options (Checkout for PayPal -> Settings).
 
 * Client ID: The client ID for your PayPal REST API app
+* Secret Key: The secret key for your PayPal REST API app
 * Currency Code: The default currency of the payment
 * Return URL: The page URL to which the customer will be redirected after a successful payment (optional).
 * Cancel URL: The page URL to which the customer will be redirected when a payment is cancelled (optional).
@@ -149,6 +150,9 @@ Yes.
 none
 
 == Changelog ==
+
+= 1.0.28 =
+* Updated the plugin to be compatible with PayPal Orders API Version v2.
 
 = 1.0.27 =
 * Made changes to the code that retrieve the plugin url and path.
