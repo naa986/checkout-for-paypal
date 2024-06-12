@@ -4,6 +4,7 @@ Donate link: https://noorsplugin.com/
 Tags: paypal, checkout, credit card, ecommerce, payments
 Requires at least: 5.5
 Tested up to: 6.5
+Stable tag: 1.0.29
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -15,27 +16,27 @@ Easily accept PayPal payments in WordPress by adding PayPal smart payment button
 
 https://www.youtube.com/watch?v=4zXq305htBA&rel=0
 
-Your customers will be able to pay for your products using PayPal, Pay Later or Credit Card. All you need to do is insert a shortcode into one of your web pages and your website will be ready to go live.
-
-Checkout for PayPal supports PayPal Sandbox. PayPal Sandbox is a simulation environment which allows you to do test purchases between a test buyer and a seller account. This is to make sure that your store can process PayPal transactions without any issues. It also helps you get prepared before selling to real customers.
-
 === Checkout for PayPal Features ===
 
-* Sell products or services using PayPal
-* Create PayPal buttons on the fly in a post/page using shortcodes
-* Smart Fast PayPal checkout
-* Allow shoppers to complete their purchases using PayPal, Pay Later, Pay in 4, Venmo, credit card and debit card payments 
-* Accept once off payments
-* Support Venmo checkout
-* Offer a simplified and secure checkout experience
-* View or Manage orders received via PayPal buttons from your WordPress admin dashboard
-* Quick settings configurations
-* Enable debug to troubleshoot various issues (e.g. orders not getting updated)
-* Switch your store to PayPal sandbox mode for testing
-* Sell in any currency supported by PayPal
-* Send a purchase confirmation email to your customer after a transaction
-* Send a sale notification email to one or more recipients (e.g. the seller) after a transaction
-* Customize the locale
+* **Easy Integration**: Seamless integration with your e-commerce site.
+* **Express Checkout**: Simplified and faster checkout process for customers.
+* **Multiple Payment Options**: Support for PayPal, Pay Later, Pay in 4, Venmo, credit/debit cards, and alternative payment methods.
+* **Secure Transactions**: Advanced fraud protection and secure payment processing.
+* **Global Reach**: Accept payments from customers worldwide in multiple currencies.
+* **Mobile Optimization**: Fully responsive and optimized for mobile devices.
+* **Customizable Checkout**: Tailor the checkout experience to match your brand.
+* **In-Context Checkout**: Keeps customers on your site during the payment process.
+* **Order Tracking**: Integrated order tracking and management.
+* **Multi-Language Support**: Available in multiple languages to cater to global audiences.
+* **Instant Payment Notifications**: Real-time transaction updates.
+* **Customizable Buttons**: Various button styles and sizes to fit your site's design.
+* **Developer-Friendly**: Extensive documentation and support for developers.
+* **Sandbox Testing**: Test transactions without affecting real accounts.
+* **PCI Compliance**: Ensures your site meets all PCI DSS requirements.
+* **API Integration**: Robust API for advanced customization and integration.
+* **Responsive Customer Support**: Access to 24/7 support for any issues.
+* **Seamless Updates**: Regular updates to ensure compatibility and security.
+* **Easy Setup Wizard**: Step-by-step guide to help you get started quickly.
 
 === Checkout for PayPal Add-ons ===
 
@@ -149,6 +150,9 @@ Yes.
 none
 
 == Changelog ==
+
+= 1.0.29 =
+* Added an option to disable the Orders API v2 notice.
 
 = 1.0.28 =
 * Updated the plugin to be compatible with PayPal Orders API Version v2.

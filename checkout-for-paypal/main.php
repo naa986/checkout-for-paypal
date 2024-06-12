@@ -1,7 +1,7 @@
 <?php
 /*
   Plugin Name: Checkout for PayPal
-  Version: 1.0.28
+  Version: 1.0.29
   Plugin URI: https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/  
   Author: naa986
   Author URI: https://noorsplugin.com/
@@ -15,7 +15,7 @@ if(!defined('ABSPATH')){
 }
 class CHECKOUT_FOR_PAYPAL {
     
-    var $plugin_version = '1.0.28';
+    var $plugin_version = '1.0.29';
     var $db_version = '1.0.2';
     var $plugin_url;
     var $plugin_path;
@@ -105,9 +105,12 @@ class CHECKOUT_FOR_PAYPAL {
             }
         }
         $options = checkout_for_paypal_get_option();
-        if(isset($options['app_client_id']) && !empty($options['app_client_id'])){
-            if(!isset($options['app_secret_key']) || empty($options['app_secret_key'])){
-                $message .= '<div class="error"><p>' . __('Checkout for PayPal integration requires an update. Please update your API credentials in the settings and test to ensure everything is working.', 'checkout-for-paypal').'</p></div>';
+        $disable_orders_api_v2_notice = get_option('checkout_for_paypal_disable_orders_api_v2_notice');
+        if(!isset($disable_orders_api_v2_notice) || empty($disable_orders_api_v2_notice)){
+            if(isset($options['app_client_id']) && !empty($options['app_client_id'])){
+                if(!isset($options['app_secret_key']) || empty($options['app_secret_key'])){
+                    $message .= '<div class="error"><p>' . __('Checkout for PayPal integration requires an update. Please update your API credentials in the settings and test to ensure everything is working.', 'checkout-for-paypal').'</p></div>';
+                }
             }
         }
         if(empty($message)){
@@ -337,6 +340,8 @@ class CHECKOUT_FOR_PAYPAL {
             if(isset($_POST['disable_funding'])){
                 $disable_funding = sanitize_text_field($_POST['disable_funding']);
             }
+            $disable_orders_api_v2_notice = (isset($_POST['disable_orders_api_v2_notice']) && $_POST['disable_orders_api_v2_notice'] == '1') ? '1' : '';
+            update_option('checkout_for_paypal_disable_orders_api_v2_notice', $disable_orders_api_v2_notice);
             $paypal_options = array();
             $paypal_options['test_mode'] = $test_mode;
             $paypal_options['app_sandbox_client_id'] = $app_sandbox_client_id;
@@ -372,6 +377,10 @@ class CHECKOUT_FOR_PAYPAL {
         }
         $enable_funding = (isset($paypal_options['enable_funding']) && !empty($paypal_options['enable_funding'])) ? $paypal_options['enable_funding'] : '';
         $disable_funding = (isset($paypal_options['disable_funding']) && !empty($paypal_options['disable_funding'])) ? $paypal_options['disable_funding'] : '';
+        $disable_orders_api_v2_notice = get_option('checkout_for_paypal_disable_orders_api_v2_notice');
+        if(!isset($disable_orders_api_v2_notice) || empty($disable_orders_api_v2_notice)){
+            $disable_orders_api_v2_notice = '';
+        }
         $locale_doc_url = "https://noorsplugin.com/paypal-checkout-locale/";
         $locale_doc_link = sprintf(__('You can find the full list <a target="_blank" href="%s">here</a>.', 'checkout-for-paypal'), esc_url($locale_doc_url));
         $allowed_html_tags = array(
@@ -468,6 +477,14 @@ class CHECKOUT_FOR_PAYPAL {
                                         <th scope="row"><label for="disable_funding"><?php _e('Disabled Funding Sources', 'checkout-for-paypal');?></label></th>
                                         <td><textarea name="disable_funding" id="disable_funding" class="large-text"><?php echo esc_html($disable_funding); ?></textarea>
                                             <p class="description"><?php echo __('Disabled funding sources in comma-separated format (optional).', 'checkout-for-paypal').' ';?>Example: <strong>card</strong> or <strong>card,credit</strong> or <strong>card,credit,paylater</strong>.<?php echo ' '.__('Any funding sources that you enter here are not displayed as buttons at checkout.', 'checkout-for-paypal').' '.wp_kses($funding_src_doc_link, $allowed_html_tags);?></p></td>
+                                    </tr>
+                                    
+                                    <tr valign="top">
+                                        <th scope="row"><?php _e('Disable Orders API v2 Notice', 'checkout-for-paypal');?></th>
+                                        <td> <fieldset><legend class="screen-reader-text"><span>Disable Orders API v2 Notice</span></legend><label for="disable_orders_api_v2_notice">
+                                                    <input name="disable_orders_api_v2_notice" type="checkbox" id="disable_orders_api_v2_notice" <?php if ($disable_orders_api_v2_notice == '1') echo ' checked="checked"'; ?> value="1">
+                                                    <?php _e("Check this option if you want to disable the orders API v2 update notice. By default, the notice is shown as long as the setup is incomplete.", 'checkout-for-paypal');?></label>
+                                            </fieldset></td>
                                     </tr>
 
                                 </tbody>
