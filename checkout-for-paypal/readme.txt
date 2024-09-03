@@ -4,7 +4,7 @@ Donate link: https://noorsplugin.com/
 Tags: paypal, checkout, credit card, ecommerce, payments
 Requires at least: 5.5
 Tested up to: 6.6
-Stable tag: 1.0.29
+Stable tag: 1.0.30
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -150,6 +150,9 @@ Yes.
 none
 
 == Changelog ==
+
+= 1.0.30 =
+* Changed a logical statement to get around a bug in some default themes.
 
 = 1.0.29 =
 * Added an option to disable the Orders API v2 notice.

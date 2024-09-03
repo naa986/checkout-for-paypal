@@ -1,7 +1,7 @@
 <?php
 /*
   Plugin Name: Checkout for PayPal
-  Version: 1.0.29
+  Version: 1.0.30
   Plugin URI: https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/  
   Author: naa986
   Author URI: https://noorsplugin.com/
@@ -15,7 +15,7 @@ if(!defined('ABSPATH')){
 }
 class CHECKOUT_FOR_PAYPAL {
     
-    var $plugin_version = '1.0.29';
+    var $plugin_version = '1.0.30';
     var $db_version = '1.0.2';
     var $plugin_url;
     var $plugin_path;
@@ -904,6 +904,11 @@ function checkout_for_paypal_button_handler($atts) {
     $button_code .= '<div id="'.esc_attr($button_id).'" style="'.esc_attr('max-width: '.$width.'px;').'"></div>';
     $button_code .= '</div>';
     $ajax_url = admin_url('admin-ajax.php');
+    /*
+    2022, 2023, 2024 themes seem to convert front-end JavaScript & to &#038; automatically breaking the PayPal button
+    changed the following logic because of this issue: https://core.trac.wordpress.org/ticket/45387#comment:14
+    if(shipping.length !== 0 && !isNaN(shipping)){
+    */
     $button_code .= <<<EOT
     <script>
     jQuery(document).ready(function() {
@@ -967,11 +972,13 @@ function checkout_for_paypal_button_handler($atts) {
                         purchase_units[0].amount.breakdown.item_total.currency_code = currency;
                         purchase_units[0].amount.breakdown.item_total.value = amount;
                     }
-                    if(shipping.length !== 0 && !isNaN(shipping)){
-                        purchase_units[0].amount.breakdown.shipping = {};
-                        purchase_units[0].amount.breakdown.shipping.currency_code = currency;
-                        purchase_units[0].amount.breakdown.shipping.value = shipping;
-                        totalamount = parseFloat(amount)+parseFloat(shipping);
+                    if(shipping.length !== 0){
+                        if(!isNaN(shipping)){
+                            purchase_units[0].amount.breakdown.shipping = {};
+                            purchase_units[0].amount.breakdown.shipping.currency_code = currency;
+                            purchase_units[0].amount.breakdown.shipping.value = shipping;
+                            totalamount = parseFloat(amount)+parseFloat(shipping);
+                        }
                     }
                     if(totalamount > 0){
                         purchase_units[0].amount.value = String(totalamount);
