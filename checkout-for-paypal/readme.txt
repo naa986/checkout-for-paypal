@@ -1,4 +1,4 @@
-=== Checkout for PayPal ===
+=== Checkout for PayPal - Accept PayPal, Pay Later, Credit/Debit Cards, & More ===
 Contributors: naa986
 Donate link: https://noorsplugin.com/
 Tags: paypal, checkout, credit card, ecommerce, payments
@@ -6,15 +6,21 @@ Requires at least: 5.5
 Tested up to: 6.6
 Stable tag: 1.0.30
 License: GPLv2 or later
-License URI: http://www.gnu.org/licenses/gpl-2.0.html
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Easily accept PayPal payments in WordPress by adding PayPal smart payment buttons to your website.
+Easily accept PayPal Checkout payments in WordPress by adding PayPal smart payment buttons to your website.
 
 == Description ==
 
 [Checkout for PayPal](https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/) plugin allows you to easily create PayPal smart payment buttons using PayPal's checkout API (previously known as PayPal Express Checkout). It generates dynamic payment buttons using shortcodes that enable PayPal checkout on your WordPress site.
 
 https://www.youtube.com/watch?v=4zXq305htBA&rel=0
+
+=== Checkout for PayPal Add-ons ===
+
+* [Variable Price](https://noorsplugin.com/how-to-add-a-price-field-to-a-paypal-button/)
+* [Dynamic Buttons](https://noorsplugin.com/checkout-for-paypal-dynamic-buttons/)
+* [Contact Form 7 Integration](https://noorsplugin.com/checkout-for-paypal-integration-with-contact-form-7/)
 
 === Checkout for PayPal Features ===
 
@@ -37,12 +43,6 @@ https://www.youtube.com/watch?v=4zXq305htBA&rel=0
 * **Responsive Customer Support**: Access to 24/7 support for any issues.
 * **Seamless Updates**: Regular updates to ensure compatibility and security.
 * **Easy Setup Wizard**: Step-by-step guide to help you get started quickly.
-
-=== Checkout for PayPal Add-ons ===
-
-* [Variable Price](https://noorsplugin.com/how-to-add-a-price-field-to-a-paypal-button/)
-* [Dynamic Buttons](https://noorsplugin.com/checkout-for-paypal-dynamic-buttons/)
-* [Contact Form 7 Integration](https://noorsplugin.com/checkout-for-paypal-integration-with-contact-form-7/)
 
 === How to Configure Checkout for PayPal ===
 
