@@ -2,7 +2,7 @@
 
 ## Description
 
-[Checkout for PayPal](https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/) plugin allows you to easily create PayPal smart payment buttons using PayPal's checkout API. It generates dynamic payment buttons using shortcodes that enable PayPal checkout on your WordPress site. It was developed by [Noor Alam](https://noorsplugin.com/about/) from [Noor's Plugin](https://noorsplugin.com/) and is currently being used on hundreds of websites.
+[Checkout for PayPal](https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/) plugin allows you to easily create PayPal smart payment buttons using PayPal's checkout API. It generates dynamic payment buttons using shortcodes that enable PayPal checkout on your WordPress site. It was developed by [Noor's Plugin](https://noorsplugin.com/) and is currently being used on hundreds of websites.
 
 Your customers will be able to pay for your products using PayPal, Pay Later or Credit Card. All you need to do is insert a shortcode into one of your web pages and your website will be ready to go live.
 
