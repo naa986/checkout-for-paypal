@@ -1,7 +1,7 @@
 <?php
 /*
   Plugin Name: Checkout for PayPal
-  Version: 1.0.30
+  Version: 1.0.31
   Plugin URI: https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/  
   Author: naa986
   Author URI: https://noorsplugin.com/
@@ -15,7 +15,7 @@ if(!defined('ABSPATH')){
 }
 class CHECKOUT_FOR_PAYPAL {
     
-    var $plugin_version = '1.0.30';
+    var $plugin_version = '1.0.31';
     var $db_version = '1.0.2';
     var $plugin_url;
     var $plugin_path;
@@ -886,6 +886,9 @@ function checkout_for_paypal_button_handler($atts) {
     if(!empty($variable_price_desc_code)){
         $description_code = $variable_price_desc_code;
         $description_queryselector = "document.querySelector('#{$button_container_id} .coforpaypal_variable_price_description_input')";
+        if(isset($atts['variable_price_descriptions']) && !empty($atts['variable_price_descriptions'])) {
+            $description_queryselector = "document.querySelector('#{$button_container_id} .coforpaypal_variable_price_description_select')";
+        }
     }
     $button_code .= $description_code;
     $amount_code = '<input class="coforpaypal_amount_input" type="hidden" name="amount" value="'.esc_attr($amount).'" required>';

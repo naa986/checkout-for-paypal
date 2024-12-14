@@ -4,7 +4,7 @@ Donate link: https://noorsplugin.com/
 Tags: paypal, checkout, credit card, ecommerce, payments
 Requires at least: 5.5
 Tested up to: 6.7
-Stable tag: 1.0.30
+Stable tag: 1.0.31
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -150,6 +150,9 @@ Yes.
 none
 
 == Changelog ==
+
+= 1.0.31 =
+* Added support for variable price description options.
 
 = 1.0.30 =
 * Changed a logical statement to get around a bug in some default themes.
