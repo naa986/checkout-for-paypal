@@ -1,7 +1,7 @@
 <?php
 /*
   Plugin Name: Checkout for PayPal
-  Version: 1.0.31
+  Version: 1.0.32
   Plugin URI: https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/  
   Author: naa986
   Author URI: https://noorsplugin.com/
@@ -15,7 +15,7 @@ if(!defined('ABSPATH')){
 }
 class CHECKOUT_FOR_PAYPAL {
     
-    var $plugin_version = '1.0.31';
+    var $plugin_version = '1.0.32';
     var $db_version = '1.0.2';
     var $plugin_url;
     var $plugin_path;
@@ -821,7 +821,7 @@ function checkout_for_paypal_button_handler($atts) {
     }
     $return_output = '';
     if(!empty($return_url)){
-        $return_output = 'window.location.replace("'.$return_url.'");';
+        $return_output = 'window.location.replace("'.esc_js($return_url).'");';
     }
     $cancel_url = (isset($options['cancel_url']) && !empty($options['cancel_url'])) ? $options['cancel_url'] : '';
     if(isset($atts['cancel_url']) && !empty($atts['cancel_url'])){
@@ -829,7 +829,7 @@ function checkout_for_paypal_button_handler($atts) {
     }
     $cancel_output = '';
     if(!empty($cancel_url)){
-        $cancel_output = 'window.location.replace("'.$cancel_url.'");';
+        $cancel_output = 'window.location.replace("'.esc_js($cancel_url).'");';
     }
     $shipping_preference = 'GET_FROM_FILE';
     if(isset($atts['shipping_preference']) && !empty($atts['shipping_preference'])){
