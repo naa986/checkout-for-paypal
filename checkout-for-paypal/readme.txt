@@ -4,7 +4,7 @@ Donate link: https://noorsplugin.com/
 Tags: paypal, checkout, credit card, ecommerce, email
 Requires at least: 5.5
 Tested up to: 6.7
-Stable tag: 1.0.32
+Stable tag: 1.0.33
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -159,6 +159,9 @@ Yes.
 none
 
 == Changelog ==
+
+= 1.0.33 =
+* Some improvements in security reported by Wordfence.
 
 = 1.0.32 =
 * Some improvements in security reported by Wordfence.
