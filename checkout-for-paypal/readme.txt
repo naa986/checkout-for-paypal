@@ -4,17 +4,15 @@ Donate link: https://noorsplugin.com/
 Tags: paypal, checkout, credit card, ecommerce, email
 Requires at least: 5.5
 Tested up to: 6.7
-Stable tag: 1.0.33
+Stable tag: 1.0.34
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Easily accept PayPal Checkout payments in WordPress by adding PayPal smart payment buttons to your website.
+Add PayPal Checkout, PayPal's latest payment solution. Accept PayPal, Pay Later, Venmo, credit cards, debit cards, digital wallets, bank accounts.
 
 == Description ==
 
 [Checkout for PayPal](https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/) plugin allows you to easily create PayPal smart payment buttons using PayPal's checkout API (previously known as PayPal Express Checkout). It generates dynamic payment buttons using shortcodes that enable PayPal checkout on your WordPress site.
-
-https://www.youtube.com/watch?v=4zXq305htBA&rel=0
 
 === Checkout for PayPal Add-ons ===
 
@@ -43,6 +41,28 @@ https://www.youtube.com/watch?v=4zXq305htBA&rel=0
 * **Responsive Customer Support**: Access to 24/7 support for any issues.
 * **Seamless Updates**: Regular updates to ensure compatibility and security.
 * **Easy Setup Wizard**: Step-by-step guide to help you get started quickly.
+
+=== PayPal Checkout Payment Methods ===
+
+* PayPal
+* Pay Later
+* PayPal Credit
+* Venmo
+* American Express
+* Apple Pay
+* Bancontact
+* BLIK
+* Discover
+* eps
+* Google Pay
+* iDEAL
+* Mastercard
+* Multibanco
+* MyBank
+* Pay upon Invoice
+* Przelewy24
+* Trustly
+* Visa
 
 === How to Configure Checkout for PayPal ===
 
@@ -125,7 +145,7 @@ For detailed documentation please visit the [PayPal](https://noorsplugin.com/che
 
 = Translation =
 
-If you are a non-English speaker please help [translate Checkout for PayPal](https://translate.wordpress.org/projects/wp-plugins/checkout-for-paypal/) into your language.
+If you are a non-English speaker please help translate Checkout for PayPal into your language.
 
 *Note: This is NOT an official PayPal product.*
 
@@ -159,6 +179,9 @@ Yes.
 none
 
 == Changelog ==
+
+= 1.0.34 =
+* File naming changes.
 
 = 1.0.33 =
 * Some improvements in security reported by Wordfence.
