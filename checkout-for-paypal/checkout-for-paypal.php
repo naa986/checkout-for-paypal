@@ -1,7 +1,7 @@
 <?php
 /*
   Plugin Name: Checkout for PayPal
-  Version: 1.0.34
+  Version: 1.0.35
   Plugin URI: https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/  
   Author: naa986
   Author URI: https://noorsplugin.com/
@@ -15,7 +15,7 @@ if(!defined('ABSPATH')){
 }
 class CHECKOUT_FOR_PAYPAL {
     
-    var $plugin_version = '1.0.34';
+    var $plugin_version = '1.0.35';
     var $db_version = '1.0.2';
     var $plugin_url;
     var $plugin_path;
@@ -109,7 +109,7 @@ class CHECKOUT_FOR_PAYPAL {
         if(!isset($disable_orders_api_v2_notice) || empty($disable_orders_api_v2_notice)){
             if(isset($options['app_client_id']) && !empty($options['app_client_id'])){
                 if(!isset($options['app_secret_key']) || empty($options['app_secret_key'])){
-                    $message .= '<div class="error"><p>' . __('Checkout for PayPal integration requires an update. Please update your API credentials in the settings and test to ensure everything is working.', 'checkout-for-paypal').'</p></div>';
+                    $message .= '<div class="error"><p>' . __('Checkout for PayPal is not using the latest API. To automatically use this API, the plugin requires your Client ID and Secret Key in the settings. Once you have updated the settings, click a PayPal button on your site to ensure everything is working.', 'checkout-for-paypal').'</p></div>';
                 }
             }
         }
@@ -214,7 +214,7 @@ class CHECKOUT_FOR_PAYPAL {
     }
 
     function add_plugin_action_links($links, $file) {
-        if ($file == plugin_basename(dirname(__FILE__) . '/main.php')) {
+        if ($file == plugin_basename(dirname(__FILE__) . '/checkout-for-paypal.php')) {
             $links[] = '<a href="'.esc_url(admin_url('edit.php?post_type=coforpaypal_order&page=checkout-for-paypal-settings')).'">'.__('Settings', 'checkout-for-paypal').'</a>';
         }
         return $links;
