@@ -1,7 +1,7 @@
 <?php
 /*
   Plugin Name: Checkout for PayPal
-  Version: 1.0.35
+  Version: 1.0.36
   Plugin URI: https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/  
   Author: naa986
   Author URI: https://noorsplugin.com/
@@ -15,7 +15,7 @@ if(!defined('ABSPATH')){
 }
 class CHECKOUT_FOR_PAYPAL {
     
-    var $plugin_version = '1.0.35';
+    var $plugin_version = '1.0.36';
     var $db_version = '1.0.2';
     var $plugin_url;
     var $plugin_path;
@@ -161,8 +161,23 @@ class CHECKOUT_FOR_PAYPAL {
     
     function load_scripts(){
         $options = checkout_for_paypal_get_option();
+        $client_id = '';
+        if(isset($options['app_client_id']) && !empty($options['app_client_id'])){
+            $client_id = $options['app_client_id'];
+        }
+        if(isset($options['test_mode']) && $options['test_mode'] == "1"){
+            if(isset($options['app_sandbox_client_id']) && !empty($options['app_sandbox_client_id'])){
+                $client_id = $options['app_sandbox_client_id'];
+            }
+        }
+        if(!isset($client_id) || empty($client_id)){
+            return;
+        }
+        if(!isset($options['currency_code']) || empty($options['currency_code'])){
+            return;
+        }
         $args = array(
-            'client-id' => $options['app_client_id'],
+            'client-id' => $client_id,
             'currency' => $options['currency_code'],                 
         );
         if(isset($options['enable_funding']) && !empty($options['enable_funding'])){
