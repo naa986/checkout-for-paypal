@@ -14,6 +14,8 @@ Add PayPal Checkout, PayPal's latest payment solution. Accept PayPal, Pay Later,
 
 [Checkout for PayPal](https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/) plugin allows you to easily create PayPal smart payment buttons using PayPal's checkout API (previously known as PayPal Express Checkout). It generates dynamic payment buttons using shortcodes that enable PayPal checkout on your WordPress site.
 
+https://www.youtube.com/watch?v=4zXq305htBA&rel=0
+
 === Checkout for PayPal Add-ons ===
 
 * [Variable Price](https://noorsplugin.com/how-to-add-a-price-field-to-a-paypal-button/)
