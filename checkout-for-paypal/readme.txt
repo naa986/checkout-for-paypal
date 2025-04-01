@@ -4,7 +4,7 @@ Donate link: https://noorsplugin.com/
 Tags: paypal, checkout, credit card, ecommerce, email
 Requires at least: 5.5
 Tested up to: 6.7
-Stable tag: 1.0.37
+Stable tag: 1.0.38
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -13,8 +13,6 @@ Add PayPal Checkout, PayPal's latest payment solution. Accept PayPal, Pay Later,
 == Description ==
 
 [Checkout for PayPal](https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/) plugin allows you to easily create PayPal smart payment buttons using PayPal's checkout API (previously known as PayPal Express Checkout). It generates dynamic payment buttons using shortcodes that enable PayPal checkout on your WordPress site.
-
-https://www.youtube.com/watch?v=4zXq305htBA&rel=0
 
 === Checkout for PayPal Add-ons ===
 
@@ -111,15 +109,6 @@ When this feature is enabled an email is sent to your chosen recipient(s) after 
 
 You can use various email tags in the body of an email to dynamically change its content. You can find the full list of available email tags in the [Checkout for PayPal](https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/) plugin page.
 
-Can the email messages be sent over SMTP? Absolutely. The following SMTP plugins have been tested:
-
-* SMTP Mailer
-* Gmail SMTP
-* WP Mail SMTP
-* Post SMTP
-* FluentSMTP
-* Easy WP SMTP
-
 === How to Create a PayPal Smart Payment Button ===
 
 In order to create a [PayPal Smart Payment Button](https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/) insert the shortcode like the following:
@@ -181,6 +170,9 @@ Yes.
 none
 
 == Changelog ==
+
+= 1.0.38 =
+* Improvement to code that changes the layout, color and shape of the button.
 
 = 1.0.37 =
 * Fixed broken parameters in the return URL.
