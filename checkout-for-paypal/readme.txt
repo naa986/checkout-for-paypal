@@ -4,7 +4,7 @@ Donate link: https://noorsplugin.com/
 Tags: paypal, checkout, credit card, ecommerce, email
 Requires at least: 5.5
 Tested up to: 6.7
-Stable tag: 1.0.38
+Stable tag: 1.0.39
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -170,6 +170,9 @@ Yes.
 none
 
 == Changelog ==
+
+= 1.0.39 =
+* Some improvements in security.
 
 = 1.0.38 =
 * Improvement to code that changes the layout, color and shape of the button.

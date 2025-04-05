@@ -1,7 +1,7 @@
 <?php
 /*
   Plugin Name: Checkout for PayPal
-  Version: 1.0.38
+  Version: 1.0.39
   Plugin URI: https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/  
   Author: naa986
   Author URI: https://noorsplugin.com/
@@ -15,7 +15,7 @@ if(!defined('ABSPATH')){
 }
 class CHECKOUT_FOR_PAYPAL {
     
-    var $plugin_version = '1.0.38';
+    var $plugin_version = '1.0.39';
     var $db_version = '1.0.2';
     var $plugin_url;
     var $plugin_path;
@@ -853,8 +853,8 @@ function checkout_for_paypal_button_handler($atts) {
         $cancel_output .= "window.location.replace(cancel_url);";
     }
     $shipping_preference = 'GET_FROM_FILE';
-    if(isset($atts['shipping_preference']) && !empty($atts['shipping_preference'])){
-        $shipping_preference = $atts['shipping_preference'];
+    if(isset($atts['shipping_preference']) && $atts['shipping_preference'] == 'NO_SHIPPING'){
+        $shipping_preference = 'NO_SHIPPING';
     }
     $width = '300';
     if(isset($atts['width']) && !empty($atts['width'])){
@@ -1016,7 +1016,7 @@ function checkout_for_paypal_button_handler($atts) {
                             paypal: {
                                 experience_context: {
                                     payment_method_preference: 'IMMEDIATE_PAYMENT_REQUIRED',
-                                    shipping_preference: '{$shipping_preference}',
+                                    shipping_preference: '{$esc_js($shipping_preference)}',
                                 }
                             }
                         },
