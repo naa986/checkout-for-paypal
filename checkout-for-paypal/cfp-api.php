@@ -181,6 +181,7 @@ function checkout_for_paypal_get_paypal_access_token() {
             )
         );
     }
+    $secret_key = base64_decode($secret_key);
     $auth = base64_encode($client_id . ':' . $secret_key);
     checkout_for_paypal_debug_log('Creating access token', true);
     $response = wp_safe_remote_post($url, array(

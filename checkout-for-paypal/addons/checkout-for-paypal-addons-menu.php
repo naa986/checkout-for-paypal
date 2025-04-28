@@ -31,6 +31,14 @@ function checkout_for_paypal_display_addons_menu()
     );
     array_push($addons_data, $addon_3);
     
+    $addon_4 = array(
+        'name' => 'Order Export',
+        'thumbnail' => CHECKOUT_FOR_PAYPAL_URL.'/addons/images/checkout-for-paypal-order-export.png',
+        'description' => 'Export Checkout for PayPal orders',
+        'page_url' => 'https://noorsplugin.com/checkout-for-paypal-order-export/',
+    );
+    array_push($addons_data, $addon_4);
+    
     //Display the list
     foreach ($addons_data as $addon) {
         ?>

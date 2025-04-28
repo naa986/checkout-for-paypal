@@ -1,10 +1,10 @@
 === Checkout for PayPal ===
 Contributors: naa986
 Donate link: https://noorsplugin.com/
-Tags: paypal, checkout, credit card, ecommerce, email
+Tags: paypal, payment, credit card, ecommerce, email
 Requires at least: 5.5
 Tested up to: 6.8
-Stable tag: 1.0.39
+Stable tag: 1.0.40
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -19,6 +19,7 @@ Add PayPal Checkout, PayPal's latest payment solution. Accept PayPal, Pay Later,
 * [Variable Price](https://noorsplugin.com/how-to-add-a-price-field-to-a-paypal-button/)
 * [Dynamic Buttons](https://noorsplugin.com/checkout-for-paypal-dynamic-buttons/)
 * [Contact Form 7 Integration](https://noorsplugin.com/checkout-for-paypal-integration-with-contact-form-7/)
+* [Order Export](https://noorsplugin.com/checkout-for-paypal-order-export/)
 
 === Checkout for PayPal Features ===
 
@@ -170,6 +171,9 @@ Yes.
 none
 
 == Changelog ==
+
+= 1.0.40 =
+* Added security to api keys.
 
 = 1.0.39 =
 * Some improvements in security.

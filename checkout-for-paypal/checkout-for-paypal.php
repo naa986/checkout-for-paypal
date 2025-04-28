@@ -1,7 +1,7 @@
 <?php
 /*
   Plugin Name: Checkout for PayPal
-  Version: 1.0.39
+  Version: 1.0.40
   Plugin URI: https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/  
   Author: naa986
   Author URI: https://noorsplugin.com/
@@ -15,8 +15,8 @@ if(!defined('ABSPATH')){
 }
 class CHECKOUT_FOR_PAYPAL {
     
-    var $plugin_version = '1.0.39';
-    var $db_version = '1.0.2';
+    var $plugin_version = '1.0.40';
+    var $db_version = '1.0.3';
     var $plugin_url;
     var $plugin_path;
     
@@ -81,6 +81,25 @@ class CHECKOUT_FOR_PAYPAL {
             $options['enable_funding'] = 'venmo';
             $options['enable_venmo'] = '';
             checkout_for_paypal_update_option($options);
+        }
+        //
+        //auto encoding code - added 28-04-2025
+        $sk_auto_encoded = get_option('checkout_for_paypal_sk_auto_encoded');
+        if(!isset($sk_auto_encoded) || empty($sk_auto_encoded)){
+            $options = checkout_for_paypal_get_option();
+            $sk_updated = false;
+            if(isset($options['app_sandbox_secret_key']) && !empty($options['app_sandbox_secret_key'])){
+                $options['app_sandbox_secret_key'] = base64_encode($options['app_sandbox_secret_key']);
+                $sk_updated = true;
+            }
+            if(isset($options['app_secret_key']) && !empty($options['app_secret_key'])){
+                $options['app_secret_key'] = base64_encode($options['app_secret_key']);
+                $sk_updated = true;
+            }
+            if($sk_updated){
+                checkout_for_paypal_update_option($options);
+            }
+            add_option('checkout_for_paypal_sk_auto_encoded', true);
         }
         //
         add_option('checkout_for_paypal_db_version', $this->db_version);
@@ -313,22 +332,29 @@ class CHECKOUT_FOR_PAYPAL {
             if (!wp_verify_nonce($nonce, 'checkout_for_paypal_general_settings')) {
                 wp_die(__('Error! Nonce Security Check Failed! please save the general settings again.', 'checkout-for-paypal'));
             }
+            $api_key_present_msg = 'Saved. Enter only if you need to update.';
             $test_mode = (isset($_POST['test_mode']) && $_POST['test_mode'] == '1') ? '1' : '';
             $app_sandbox_client_id = '';
             if(isset($_POST['app_sandbox_client_id']) && !empty($_POST['app_sandbox_client_id'])){
                 $app_sandbox_client_id = sanitize_text_field($_POST['app_sandbox_client_id']);
             }
             $app_sandbox_secret_key = '';
-            if(isset($_POST['app_sandbox_secret_key']) && !empty($_POST['app_sandbox_secret_key'])){
+            $update_app_sandbox_secret_key = false;
+            if(isset($_POST['app_sandbox_secret_key']) && !empty($_POST['app_sandbox_secret_key']) && $_POST['app_sandbox_secret_key'] != $api_key_present_msg){
                 $app_sandbox_secret_key = sanitize_text_field($_POST['app_sandbox_secret_key']);
+                $app_sandbox_secret_key = base64_encode($app_sandbox_secret_key);
+                $update_app_sandbox_secret_key = true;
             }
             $app_client_id = '';
             if(isset($_POST['app_client_id']) && !empty($_POST['app_client_id'])){
                 $app_client_id = sanitize_text_field($_POST['app_client_id']);
             }
             $app_secret_key = '';
-            if(isset($_POST['app_secret_key']) && !empty($_POST['app_secret_key'])){
+            $update_app_secret_key = false;
+            if(isset($_POST['app_secret_key']) && !empty($_POST['app_secret_key']) && $_POST['app_secret_key'] != $api_key_present_msg){
                 $app_secret_key = sanitize_text_field($_POST['app_secret_key']);
+                $app_secret_key = base64_encode($app_secret_key);
+                $update_app_secret_key = true;
             }
             $currency_code = '';
             if(isset($_POST['currency_code']) && !empty($_POST['currency_code'])){
@@ -360,9 +386,13 @@ class CHECKOUT_FOR_PAYPAL {
             $paypal_options = array();
             $paypal_options['test_mode'] = $test_mode;
             $paypal_options['app_sandbox_client_id'] = $app_sandbox_client_id;
-            $paypal_options['app_sandbox_secret_key'] = $app_sandbox_secret_key;
+            if($update_app_sandbox_secret_key){
+                $paypal_options['app_sandbox_secret_key'] = $app_sandbox_secret_key;
+            }
             $paypal_options['app_client_id'] = $app_client_id;
-            $paypal_options['app_secret_key'] = $app_secret_key;
+            if($update_app_secret_key){
+                $paypal_options['app_secret_key'] = $app_secret_key;
+            }
             $paypal_options['currency_code'] = $currency_code;
             $paypal_options['return_url'] = $return_url;
             $paypal_options['cancel_url'] = $cancel_url;
@@ -379,8 +409,14 @@ class CHECKOUT_FOR_PAYPAL {
             $test_mode = $paypal_options['test_mode'];
         }
         $app_sandbox_client_id = (isset($paypal_options['app_sandbox_client_id']) && !empty($paypal_options['app_sandbox_client_id'])) ? $paypal_options['app_sandbox_client_id'] : '';
-        $app_sandbox_secret_key = (isset($paypal_options['app_sandbox_secret_key']) && !empty($paypal_options['app_sandbox_secret_key'])) ? $paypal_options['app_sandbox_secret_key'] : '';
-        $app_secret_key = (isset($paypal_options['app_secret_key']) && !empty($paypal_options['app_secret_key'])) ? $paypal_options['app_secret_key'] : '';
+        $app_sandbox_secret_key_msg = '';
+        if(isset($paypal_options['app_sandbox_secret_key']) && !empty($paypal_options['app_sandbox_secret_key'])){
+            $app_sandbox_secret_key_msg = 'Saved. Enter only if you need to update.';
+        }
+        $app_secret_key_msg = '';
+        if(isset($paypal_options['app_secret_key']) && !empty($paypal_options['app_secret_key'])){
+            $app_secret_key_msg = 'Saved. Enter only if you need to update.';
+        }
         $cancel_url = (isset($paypal_options['cancel_url']) && !empty($paypal_options['cancel_url'])) ? $paypal_options['cancel_url'] : '';
         $locale = get_option('checkout_for_paypal_locale');
         if(!isset($locale) || empty($locale)){
@@ -434,7 +470,7 @@ class CHECKOUT_FOR_PAYPAL {
                                     
                                     <tr valign="top">
                                         <th scope="row"><label for="app_sandbox_secret_key"><?php _e('Sandbox Secret Key', 'checkout-for-paypal');?></label></th>
-                                        <td><input name="app_sandbox_secret_key" type="text" id="app_sandbox_secret_key" value="<?php echo esc_attr($app_sandbox_secret_key); ?>" class="regular-text">
+                                        <td><input name="app_sandbox_secret_key" type="text" id="app_sandbox_secret_key" value="<?php echo esc_attr($app_sandbox_secret_key_msg); ?>" class="regular-text">
                                             <p class="description"><?php _e('The sandbox secret key for your PayPal REST API app', 'checkout-for-paypal');?></p></td>
                                     </tr>
                                     
@@ -446,7 +482,7 @@ class CHECKOUT_FOR_PAYPAL {
                                     
                                     <tr valign="top">
                                         <th scope="row"><label for="app_secret_key"><?php _e('Live Secret Key', 'checkout-for-paypal');?></label></th>
-                                        <td><input name="app_secret_key" type="text" id="app_secret_key" value="<?php echo esc_attr($app_secret_key); ?>" class="regular-text">
+                                        <td><input name="app_secret_key" type="text" id="app_secret_key" value="<?php echo esc_attr($app_secret_key_msg); ?>" class="regular-text">
                                             <p class="description"><?php _e('The secret key for your PayPal REST API app', 'checkout-for-paypal');?></p></td>
                                     </tr>
 
