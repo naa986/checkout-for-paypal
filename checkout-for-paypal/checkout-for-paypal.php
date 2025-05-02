@@ -1,7 +1,7 @@
 <?php
 /*
   Plugin Name: Checkout for PayPal
-  Version: 1.0.40
+  Version: 1.0.41
   Plugin URI: https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/  
   Author: naa986
   Author URI: https://noorsplugin.com/
@@ -15,7 +15,7 @@ if(!defined('ABSPATH')){
 }
 class CHECKOUT_FOR_PAYPAL {
     
-    var $plugin_version = '1.0.40';
+    var $plugin_version = '1.0.41';
     var $db_version = '1.0.3';
     var $plugin_url;
     var $plugin_path;
@@ -209,6 +209,12 @@ class CHECKOUT_FOR_PAYPAL {
         if(isset($locale) && !empty($locale)){
             $args['locale'] = $locale;
         }
+        $buyer_country = get_option('checkout_for_paypal_buyer_country');
+        if(isset($buyer_country) && !empty($buyer_country)){
+            if(isset($options['test_mode']) && $options['test_mode'] == "1"){
+                $args['buyer-country'] = $buyer_country;
+            }
+        }
         $sdk_js_url = add_query_arg($args, 'https://www.paypal.com/sdk/js');
         wp_enqueue_script('jquery');
         wp_register_script('checkout-for-paypal', $sdk_js_url, array('jquery'), null);
@@ -381,6 +387,9 @@ class CHECKOUT_FOR_PAYPAL {
             if(isset($_POST['disable_funding'])){
                 $disable_funding = sanitize_text_field($_POST['disable_funding']);
             }
+            if(isset($_POST['buyer_country'])){
+                update_option('checkout_for_paypal_buyer_country', sanitize_text_field($_POST['buyer_country']));
+            }
             $disable_orders_api_v2_notice = (isset($_POST['disable_orders_api_v2_notice']) && $_POST['disable_orders_api_v2_notice'] == '1') ? '1' : '';
             update_option('checkout_for_paypal_disable_orders_api_v2_notice', $disable_orders_api_v2_notice);
             $paypal_options = array();
@@ -428,6 +437,10 @@ class CHECKOUT_FOR_PAYPAL {
         }
         $enable_funding = (isset($paypal_options['enable_funding']) && !empty($paypal_options['enable_funding'])) ? $paypal_options['enable_funding'] : '';
         $disable_funding = (isset($paypal_options['disable_funding']) && !empty($paypal_options['disable_funding'])) ? $paypal_options['disable_funding'] : '';
+        $buyer_country = get_option('checkout_for_paypal_buyer_country');
+        if(!isset($buyer_country) || empty($buyer_country)){
+            $buyer_country = '';
+        }
         $disable_orders_api_v2_notice = get_option('checkout_for_paypal_disable_orders_api_v2_notice');
         if(!isset($disable_orders_api_v2_notice) || empty($disable_orders_api_v2_notice)){
             $disable_orders_api_v2_notice = '';
@@ -529,6 +542,12 @@ class CHECKOUT_FOR_PAYPAL {
                                         <td><textarea name="disable_funding" id="disable_funding" class="large-text"><?php echo esc_html($disable_funding); ?></textarea>
                                             <p class="description"><?php echo __('Disabled funding sources in comma-separated format (optional).', 'checkout-for-paypal').' ';?>Example: <strong>card</strong> or <strong>card,credit</strong> or <strong>card,credit,paylater</strong>.<?php echo ' '.__('Any funding sources that you enter here are not displayed as buttons at checkout.', 'checkout-for-paypal').' '.wp_kses($funding_src_doc_link, $allowed_html_tags);?></p></td>
                                     </tr>
+                                    
+                                    <tr valign="top">
+                                        <th scope="row"><label for="buyer_country"><?php _e('Buyer Country', 'checkout-for-paypal');?></label></th>
+                                        <td><input name="buyer_country" type="text" id="buyer_country" value="<?php echo esc_attr($buyer_country); ?>" class="regular-text">
+                                            <p class="description"><?php _e('The country to determine which funding sources are eligible for a given buyer (optional). Example:', 'checkout-for-paypal');?> <strong>US</strong>. <?php _e('This feature is only available in the sandbox to test the checkout experience as a buyer from a particular country.', 'checkout-for-paypal');?></p></td>
+                                    </tr> 
                                     
                                     <tr valign="top">
                                         <th scope="row"><?php _e('Disable Orders API v2 Notice', 'checkout-for-paypal');?></th>

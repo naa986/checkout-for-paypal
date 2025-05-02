@@ -4,7 +4,7 @@ Donate link: https://noorsplugin.com/
 Tags: paypal, payment, credit card, ecommerce, email
 Requires at least: 5.5
 Tested up to: 6.8
-Stable tag: 1.0.40
+Stable tag: 1.0.41
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -23,10 +23,11 @@ Add PayPal Checkout, PayPal's latest payment solution. Accept PayPal, Pay Later,
 
 === Checkout for PayPal Features ===
 
-* **Easy Integration**: Seamless integration with your e-commerce site.
+* **Easy Integration**: Seamless integration with your WordPress e-commerce site.
 * **Express Checkout**: Simplified and faster checkout process for customers.
 * **Multiple Payment Options**: Support for PayPal, Pay Later, Pay in 4, Venmo, credit/debit cards, and alternative payment methods.
 * **Secure Transactions**: Advanced fraud protection and secure payment processing.
+* **Search Engine Optimization**: SEO and performance-optimized code.
 * **Global Reach**: Accept payments from customers worldwide in multiple currencies.
 * **Mobile Optimization**: Fully responsive and optimized for mobile devices.
 * **Customizable Checkout**: Tailor the checkout experience to match your brand.
@@ -42,6 +43,8 @@ Add PayPal Checkout, PayPal's latest payment solution. Accept PayPal, Pay Later,
 * **Responsive Customer Support**: Access to 24/7 support for any issues.
 * **Seamless Updates**: Regular updates to ensure compatibility and security.
 * **Easy Setup Wizard**: Step-by-step guide to help you get started quickly.
+* **Plugin-Friendly**: Can work independently alongside major ecommerce and WordPress membership plugins (e.g. WooCommerce).
+* **Donation Payments**: Accept donations using PayPal in WordPress.
 
 === PayPal Checkout Payment Methods ===
 
@@ -78,11 +81,15 @@ Add PayPal Checkout, PayPal's latest payment solution. Accept PayPal, Pay Later,
 
 Once the plugin is installed go to the settings menu to configure some default options (Checkout for PayPal -> Settings).
 
-* Client ID: The client ID for your PayPal REST API app
-* Secret Key: The secret key for your PayPal REST API app
-* Currency Code: The default currency of the payment
+* Client ID: The client ID for your PayPal REST API app.
+* Secret Key: The secret key for your PayPal REST API app.
+* Currency Code: The default currency of the payment.
 * Return URL: The page URL to which the customer will be redirected after a successful payment (optional).
 * Cancel URL: The page URL to which the customer will be redirected when a payment is cancelled (optional).
+* Locale: The locale used to localize PayPal Checkout components (optional).
+* Enabled Funding Sources: This field ensures your specified funding sources are always rendered, if eligible (optional).
+* Disabled Funding Sources: This field ensures your specified funding sources never appear at checkout (optional).
+* Buyer Country: This field lets you set a country and test the checkout experience as a buyer from that country (optional). It is only available in test mode.
 
 === Checkout for PayPal Emails ===
 
@@ -171,6 +178,9 @@ Yes.
 none
 
 == Changelog ==
+
+= 1.0.41 =
+* Added the buyer country option to test checkout as a buyer from that country.
 
 = 1.0.40 =
 * Added security to api keys.
