@@ -1,7 +1,7 @@
 <?php
 /*
   Plugin Name: Checkout for PayPal
-  Version: 1.0.41
+  Version: 1.0.42
   Plugin URI: https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/  
   Author: naa986
   Author URI: https://noorsplugin.com/
@@ -15,7 +15,7 @@ if(!defined('ABSPATH')){
 }
 class CHECKOUT_FOR_PAYPAL {
     
-    var $plugin_version = '1.0.41';
+    var $plugin_version = '1.0.42';
     var $db_version = '1.0.3';
     var $plugin_url;
     var $plugin_path;
@@ -55,6 +55,7 @@ class CHECKOUT_FOR_PAYPAL {
         add_action('wp_enqueue_scripts', array($this, 'plugin_scripts'));
         add_action('admin_menu', array($this, 'add_options_menu'));
         add_action('init', array($this, 'plugin_init'));
+        add_action('add_meta_boxes_coforpaypal_order', 'coforpaypal_order_meta_boxes');
         add_filter('manage_coforpaypal_order_posts_columns', 'checkout_for_paypal_order_columns');
         add_action('manage_coforpaypal_order_posts_custom_column', 'checkout_for_paypal_custom_column', 10, 2);
         /* start of older integration */

@@ -4,7 +4,7 @@ Donate link: https://noorsplugin.com/
 Tags: paypal, payment, credit card, ecommerce, email
 Requires at least: 5.5
 Tested up to: 6.8
-Stable tag: 1.0.41
+Stable tag: 1.0.42
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -53,17 +53,14 @@ Add PayPal Checkout, PayPal's latest payment solution. Accept PayPal, Pay Later,
 * PayPal Credit
 * Venmo
 * American Express
-* Apple Pay
 * Bancontact
 * BLIK
 * Discover
-* eps
-* Google Pay
+* EPS
 * iDEAL
 * Mastercard
 * Multibanco
 * MyBank
-* Pay upon Invoice
 * Przelewy24
 * Trustly
 * Visa
@@ -178,6 +175,9 @@ Yes.
 none
 
 == Changelog ==
+
+= 1.0.42 =
+* Added an option to edit order data shown in the table.
 
 = 1.0.41 =
 * Added the buyer country option to test checkout as a buyer from that country.
