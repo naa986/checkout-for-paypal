@@ -41,7 +41,7 @@ https://www.youtube.com/watch?v=b1Cg0w6X6XE&rel=0
 
 = Documentation =
 
-[https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/)](https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/) 
+[https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/](https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/) 
 
 = Translation =
 
