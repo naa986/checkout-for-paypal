@@ -4,7 +4,7 @@ Donate link: https://noorsplugin.com/
 Tags: paypal, button, elementor
 Requires at least: 5.5
 Tested up to: 6.8
-Stable tag: 1.0.42
+Stable tag: 1.0.43
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -12,11 +12,13 @@ Add PayPal Checkout, PayPal's latest payment solution. Accept PayPal, Pay Later,
 
 == Description ==
 
-[Checkout for PayPal](https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/) plugin allows you to easily create PayPal smart payment buttons using PayPal's checkout API (previously known as PayPal Express Checkout). It generates dynamic payment buttons using shortcodes that enable PayPal checkout on your WordPress site.
+[Checkout for PayPal](https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/) plugin allows you to easily create PayPal smart payment buttons using PayPal's checkout API (previously known as PayPal Express Checkout). It generates dynamic payment buttons using shortcodes to let you accept PayPal donations/payments on your WordPress site.
 
-=== How to Create a PayPal Smart Payment Button ===
+You can use it alongside e-commerce plugins like WooCommerce without conflicts.
 
-In order to create a PayPal Smart Payment Button insert the shortcode like the following:
+=== How to Create a PayPal Checkout Button ===
+
+In order to create a PayPal Checkout Button insert the shortcode like the following:
 
 `[checkout_for_paypal item_description="My cool product" amount="1.00"]`
 
@@ -62,7 +64,7 @@ If you are a non-English speaker please help translate Checkout for PayPal into 
 
 Yes.
 
-= Can I add PayPal smart payment buttons to my website using this plugin? =
+= Can I accept PayPal donation payments in WordPress using this plugin? =
 
 Yes.
 
@@ -79,6 +81,9 @@ Yes.
 none
 
 == Changelog ==
+
+= 1.0.43 =
+* Save payment data after a new order is added.
 
 = 1.0.42 =
 * Added an option to edit order data shown in the table.

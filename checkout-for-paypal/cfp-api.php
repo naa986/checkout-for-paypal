@@ -555,6 +555,7 @@ function checkout_for_paypal_process_v2_order_handler($capture_response_data, $o
         update_post_meta($post_id, '_email', $payment_data['payer_email']);
         update_post_meta($post_id, '_mc_gross', $payment_data['amount']);
         update_post_meta($post_id, '_payment_status', $payment_status);
+        update_post_meta($post_id, '_payment_data', $payment_data);
         checkout_for_paypal_debug_log("Order information updated", true);
         
         $email_options = checkout_for_paypal_get_email_option();
