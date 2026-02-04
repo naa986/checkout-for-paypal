@@ -1,10 +1,10 @@
 === Checkout for PayPal ===
 Contributors: naa986
 Donate link: https://noorsplugin.com/
-Tags: paypal, button, elementor, payments, ecommerce
+Tags: paypal
 Requires at least: 5.5
 Tested up to: 6.9
-Stable tag: 1.0.44
+Stable tag: 1.0.45
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -15,6 +15,13 @@ Easily accept PayPal payments on your WordPress site using the official PayPal C
 [Checkout for PayPal](https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/) is a lightweight and powerful WordPress plugin that lets you easily accept PayPal payments directly on your website using the **PayPal Checkout API**. No coding required — just install, add your PayPal account API credentials, and start receiving payments securely in minutes.
 
 This plugin is perfect for eCommerce stores, donation pages, and product sales. You can even use it alongside e-commerce plugins like WooCommerce without conflicts.
+
+=== Checkout for PayPal Add-ons ===
+
+* [Variable Price](https://noorsplugin.com/how-to-add-a-price-field-to-a-paypal-button/)
+* [Dynamic Buttons](https://noorsplugin.com/checkout-for-paypal-dynamic-buttons/)
+* [Contact Form 7 Integration](https://noorsplugin.com/checkout-for-paypal-integration-with-contact-form-7/)
+* [Order Export](https://noorsplugin.com/checkout-for-paypal-order-export/)
 
 === Features ===
 
@@ -43,15 +50,6 @@ Replace the values with your item description and amount.
 * Enter the Checkout for PayPal shortcode.
 * Click **Apply** to update changes to page.
 * Click **Publish**.
-
-https://www.youtube.com/watch?v=b1Cg0w6X6XE&rel=0
-
-=== Checkout for PayPal Add-ons ===
-
-* [Variable Price](https://noorsplugin.com/how-to-add-a-price-field-to-a-paypal-button/)
-* [Dynamic Buttons](https://noorsplugin.com/checkout-for-paypal-dynamic-buttons/)
-* [Contact Form 7 Integration](https://noorsplugin.com/checkout-for-paypal-integration-with-contact-form-7/)
-* [Order Export](https://noorsplugin.com/checkout-for-paypal-order-export/)
 
 = Documentation =
 
@@ -97,6 +95,9 @@ This plugin works independently. WooCommerce has its own PayPal integrations.
 none
 
 == Changelog ==
+
+= 1.0.45 =
+* Changed order menu icon.
 
 = 1.0.44 =
 * Improvements to code.

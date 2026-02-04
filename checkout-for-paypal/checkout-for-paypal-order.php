@@ -40,6 +40,7 @@ function checkout_for_paypal_register_order_type() {
     $args = array(
         'labels' => $labels,
         'public' => false,
+        'menu_icon' => 'dashicons-cart',
         'exclude_from_search' => true,
  	'publicly_queryable' => false,
         'show_ui' => true,
