@@ -4,7 +4,7 @@ Donate link: https://noorsplugin.com/
 Tags: paypal
 Requires at least: 5.5
 Tested up to: 6.9
-Stable tag: 1.0.45
+Stable tag: 1.0.46
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -95,6 +95,9 @@ This plugin works independently. WooCommerce has its own PayPal integrations.
 none
 
 == Changelog ==
+
+= 1.0.46 =
+* Changes to URL parameters.
 
 = 1.0.45 =
 * Changed order menu icon.

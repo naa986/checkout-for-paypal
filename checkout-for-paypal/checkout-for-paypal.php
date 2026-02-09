@@ -1,7 +1,7 @@
 <?php
 /*
   Plugin Name: Checkout for PayPal
-  Version: 1.0.45
+  Version: 1.0.46
   Plugin URI: https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/  
   Author: naa986
   Author URI: https://noorsplugin.com/
@@ -18,7 +18,7 @@ if (!class_exists('CHECKOUT_FOR_PAYPAL')) {
     
     class CHECKOUT_FOR_PAYPAL {
 
-        var $plugin_version = '1.0.45';
+        var $plugin_version = '1.0.46';
         var $db_version = '1.0.3';
         var $plugin_url;
         var $plugin_path;
@@ -898,7 +898,7 @@ function checkout_for_paypal_button_handler($atts) {
     if(!empty($return_url)){
         //$return_output = 'window.location.replace("'.esc_js(esc_url($return_url)).'");';
         $return_output = "let temp_return_url = '".esc_js(esc_url($return_url))."';";
-	$return_output .= "let return_url = temp_return_url.replace('&#038;', '&');";
+	$return_output .= "let return_url = temp_return_url.replace(/&#038;/g, '&');";
         $return_output .= "window.location.replace(return_url);";
     }
     $cancel_url = (isset($options['cancel_url']) && !empty($options['cancel_url'])) ? $options['cancel_url'] : '';
@@ -909,7 +909,7 @@ function checkout_for_paypal_button_handler($atts) {
     if(!empty($cancel_url)){
         //$cancel_output = 'window.location.replace("'.esc_js(esc_url($cancel_url)).'");';
         $cancel_output = "let temp_cancel_url = '".esc_js(esc_url($cancel_url))."';";
-	$cancel_output .= "let cancel_url = temp_cancel_url.replace('&#038;', '&');";
+	$cancel_output .= "let cancel_url = temp_cancel_url.replace(/&#038;/g, '&');";
         $cancel_output .= "window.location.replace(cancel_url);";
     }
     $shipping_preference = 'GET_FROM_FILE';
