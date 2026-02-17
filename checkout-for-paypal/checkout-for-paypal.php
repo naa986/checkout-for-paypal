@@ -1,7 +1,7 @@
 <?php
 /*
   Plugin Name: Checkout for PayPal
-  Version: 1.0.46
+  Version: 1.0.47
   Plugin URI: https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/  
   Author: naa986
   Author URI: https://noorsplugin.com/
@@ -18,7 +18,7 @@ if (!class_exists('CHECKOUT_FOR_PAYPAL')) {
     
     class CHECKOUT_FOR_PAYPAL {
 
-        var $plugin_version = '1.0.46';
+        var $plugin_version = '1.0.47';
         var $db_version = '1.0.3';
         var $plugin_url;
         var $plugin_path;
@@ -45,7 +45,6 @@ if (!class_exists('CHECKOUT_FOR_PAYPAL')) {
             include_once('checkout-for-paypal-order.php');
             include_once('cfp-email.php');
             include_once('cfp-api.php');
-            include_once('cfp-old.php');
             if(is_admin()){
                 include_once('addons/checkout-for-paypal-addons-menu.php');
             }
@@ -61,11 +60,6 @@ if (!class_exists('CHECKOUT_FOR_PAYPAL')) {
             add_action('add_meta_boxes_coforpaypal_order', 'coforpaypal_order_meta_boxes');
             add_filter('manage_coforpaypal_order_posts_columns', 'checkout_for_paypal_order_columns');
             add_action('manage_coforpaypal_order_posts_custom_column', 'checkout_for_paypal_custom_column', 10, 2);
-            /* start of older integration */
-            add_action('wp_ajax_coforpaypal_ajax_process_order', 'checkout_for_paypal_ajax_process_order');
-            add_action('wp_ajax_nopriv_coforpaypal_ajax_process_order', 'checkout_for_paypal_ajax_process_order');
-            add_action('checkout_for_paypal_process_order', 'checkout_for_paypal_process_order_handler');
-            /* end of older integration */
             add_shortcode('checkout_for_paypal', 'checkout_for_paypal_button_handler');
         }
 
@@ -127,15 +121,6 @@ if (!class_exists('CHECKOUT_FOR_PAYPAL')) {
                     $message .= '<div class="error"><p>' . __('Checkout for PayPal Debug log file is not writable. Please check to make sure that it has the correct file permission (ideally 644). Otherwise the plugin will not be able to write to the log file. The log file can be found in the root directory of the plugin - ', 'checkout-for-paypal') . '<code>' . CHECKOUT_FOR_PAYPAL_URL . '</code></p></div>';
                 }
             }
-            $options = checkout_for_paypal_get_option();
-            $disable_orders_api_v2_notice = get_option('checkout_for_paypal_disable_orders_api_v2_notice');
-            if(!isset($disable_orders_api_v2_notice) || empty($disable_orders_api_v2_notice)){
-                if(isset($options['app_client_id']) && !empty($options['app_client_id'])){
-                    if(!isset($options['app_secret_key']) || empty($options['app_secret_key'])){
-                        $message .= '<div class="error"><p>' . __('Checkout for PayPal is not using the latest API. To automatically use this API, the plugin requires your Client ID and Secret Key in the settings. Once you have updated the settings, click a PayPal button on your site to ensure everything is working.', 'checkout-for-paypal').'</p></div>';
-                    }
-                }
-            }
             if(empty($message)){
                 return;
             }
@@ -183,6 +168,9 @@ if (!class_exists('CHECKOUT_FOR_PAYPAL')) {
         }
 
         function load_scripts(){
+            if(!is_checkout_for_paypal_configured()){
+                return;
+            }
             $options = checkout_for_paypal_get_option();
             $client_id = '';
             if(isset($options['app_client_id']) && !empty($options['app_client_id'])){
@@ -394,8 +382,6 @@ if (!class_exists('CHECKOUT_FOR_PAYPAL')) {
                 if(isset($_POST['buyer_country'])){
                     update_option('checkout_for_paypal_buyer_country', sanitize_text_field($_POST['buyer_country']));
                 }
-                $disable_orders_api_v2_notice = (isset($_POST['disable_orders_api_v2_notice']) && $_POST['disable_orders_api_v2_notice'] == '1') ? '1' : '';
-                update_option('checkout_for_paypal_disable_orders_api_v2_notice', $disable_orders_api_v2_notice);
                 $paypal_options = array();
                 $paypal_options['test_mode'] = $test_mode;
                 $paypal_options['app_sandbox_client_id'] = $app_sandbox_client_id;
@@ -444,10 +430,6 @@ if (!class_exists('CHECKOUT_FOR_PAYPAL')) {
             $buyer_country = get_option('checkout_for_paypal_buyer_country');
             if(!isset($buyer_country) || empty($buyer_country)){
                 $buyer_country = '';
-            }
-            $disable_orders_api_v2_notice = get_option('checkout_for_paypal_disable_orders_api_v2_notice');
-            if(!isset($disable_orders_api_v2_notice) || empty($disable_orders_api_v2_notice)){
-                $disable_orders_api_v2_notice = '';
             }
             $locale_doc_url = "https://noorsplugin.com/paypal-checkout-locale/";
             $locale_doc_link = sprintf(__('You can find the full list <a target="_blank" href="%s">here</a>.', 'checkout-for-paypal'), esc_url($locale_doc_url));
@@ -551,16 +533,7 @@ if (!class_exists('CHECKOUT_FOR_PAYPAL')) {
                                             <th scope="row"><label for="buyer_country"><?php _e('Buyer Country', 'checkout-for-paypal');?></label></th>
                                             <td><input name="buyer_country" type="text" id="buyer_country" value="<?php echo esc_attr($buyer_country); ?>" class="regular-text">
                                                 <p class="description"><?php _e('The country to determine which funding sources are eligible for a given buyer (optional). Example:', 'checkout-for-paypal');?> <strong>US</strong>. <?php _e('This feature is only available in the sandbox to test the checkout experience as a buyer from a particular country.', 'checkout-for-paypal');?></p></td>
-                                        </tr> 
-
-                                        <tr valign="top">
-                                            <th scope="row"><?php _e('Disable Orders API v2 Notice', 'checkout-for-paypal');?></th>
-                                            <td> <fieldset><legend class="screen-reader-text"><span>Disable Orders API v2 Notice</span></legend><label for="disable_orders_api_v2_notice">
-                                                        <input name="disable_orders_api_v2_notice" type="checkbox" id="disable_orders_api_v2_notice" <?php if ($disable_orders_api_v2_notice == '1') echo ' checked="checked"'; ?> value="1">
-                                                        <?php _e("Check this option if you want to disable the orders API v2 update notice. By default, the notice is shown as long as the setup is incomplete.", 'checkout-for-paypal');?></label>
-                                                </fieldset></td>
                                         </tr>
-
                                     </tbody>
 
                                 </table>
@@ -851,22 +824,13 @@ if (!class_exists('CHECKOUT_FOR_PAYPAL')) {
 }
 
 function checkout_for_paypal_button_handler($atts) {
+    if(!is_checkout_for_paypal_configured()){
+        return __('You need to configure checkout options in the settings', 'checkout-for-paypal');
+    }
     $atts = array_map('sanitize_text_field', $atts);
     $id = uniqid();
     $atts['id'] = $id;
     $options = checkout_for_paypal_get_option();
-    //check older integration
-    if(isset($options['app_client_id']) && !empty($options['app_client_id'])){
-        if(!isset($options['app_secret_key']) || empty($options['app_secret_key'])){
-            $button_code = '';
-            $button_code = apply_filters('checkout_for_paypal_button', $button_code, $atts);
-            if(!empty($button_code)){
-                return $button_code;
-            }
-            return checkout_for_paypal_old_button_handler($atts);
-        }
-    }
-    //
     $button_code = '';
     $description = '';
     /*
@@ -1245,4 +1209,29 @@ function checkout_for_paypal_reset_log() {
         $log_reset = false;
     }
     return $log_reset;
+}
+
+function is_checkout_for_paypal_configured(){
+    $options = checkout_for_paypal_get_option();
+    $configured = true;
+    if(isset($options['test_mode']) && !empty($options['test_mode'])){
+        if(!isset($options['app_sandbox_client_id']) || empty($options['app_sandbox_client_id'])){
+            $configured = false;
+        }
+        if(!isset($options['app_sandbox_secret_key']) || empty($options['app_sandbox_secret_key'])){
+            $configured = false;
+        }
+    }
+    else{
+        if(!isset($options['app_client_id']) || empty($options['app_client_id'])){
+            $configured = false;
+        }
+        if(!isset($options['app_secret_key']) || empty($options['app_secret_key'])){
+            $configured = false;
+        }
+    }
+    if(!isset($options['currency_code']) || empty($options['currency_code'])){
+        $configured = false;
+    }
+    return $configured;
 }
