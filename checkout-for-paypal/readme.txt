@@ -43,6 +43,8 @@ In order to create a PayPal Checkout Button insert the shortcode like the follow
 
 Replace the values with your item description and amount.
 
+Note: The content of the button (e.g. name, price) is rendered in HTML and can be altered before checkout.
+
 === Elementor Page Builder Integration ===
 
 * Create a new page or **Edit with Elementor**.
