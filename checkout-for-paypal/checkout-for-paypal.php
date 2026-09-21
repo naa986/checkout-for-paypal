@@ -1,7 +1,7 @@
 <?php
 /*
   Plugin Name: Checkout for PayPal
-  Version: 1.0.47
+  Version: 1.0.48
   Plugin URI: https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/  
   Author: naa986
   Author URI: https://noorsplugin.com/
@@ -18,7 +18,7 @@ if (!class_exists('CHECKOUT_FOR_PAYPAL')) {
     
     class CHECKOUT_FOR_PAYPAL {
 
-        var $plugin_version = '1.0.47';
+        var $plugin_version = '1.0.48';
         var $db_version = '1.0.3';
         var $plugin_url;
         var $plugin_path;
@@ -43,6 +43,8 @@ if (!class_exists('CHECKOUT_FOR_PAYPAL')) {
 
         function plugin_includes() {
             include_once('checkout-for-paypal-order.php');
+            include_once('checkout-for-paypal-product.php');
+            include_once('cfp-functions.php');
             include_once('cfp-email.php');
             include_once('cfp-api.php');
             if(is_admin()){
@@ -60,7 +62,15 @@ if (!class_exists('CHECKOUT_FOR_PAYPAL')) {
             add_action('add_meta_boxes_coforpaypal_order', 'coforpaypal_order_meta_boxes');
             add_filter('manage_coforpaypal_order_posts_columns', 'checkout_for_paypal_order_columns');
             add_action('manage_coforpaypal_order_posts_custom_column', 'checkout_for_paypal_custom_column', 10, 2);
+            //
+            add_action('add_meta_boxes_coforpaypal_product', 'checkout_for_paypal_product_meta_boxes');
+            add_filter('manage_coforpaypal_product_posts_columns', 'checkout_for_paypal_product_columns');
+            add_action('manage_coforpaypal_product_posts_custom_column', 'checkout_for_paypal_product_custom_column', 10, 2);
+            //
             add_shortcode('checkout_for_paypal', 'checkout_for_paypal_button_handler');
+            //
+            add_shortcode('coforpaypal_product', 'checkout_for_paypal_product_button_handler');
+            add_shortcode('coforpaypal_checkout', 'checkout_for_paypal_checkout_button_handler');
         }
 
         function plugins_loaded_handler() {  //Runs when plugins_loaded action gets fired
@@ -130,6 +140,8 @@ if (!class_exists('CHECKOUT_FOR_PAYPAL')) {
         function plugin_init() {
             //register order type
             checkout_for_paypal_register_order_type();
+            //register product type
+            checkout_for_paypal_register_product_type();
         }
 
         function enqueue_admin_scripts($hook) {
@@ -155,6 +167,11 @@ if (!class_exists('CHECKOUT_FOR_PAYPAL')) {
                     return;
                 }
                 $is_js_required = false;
+                //
+                if(has_shortcode($post->post_content, 'coforpaypal_checkout')){
+                    $is_js_required = true;
+                }
+                //
                 if(has_shortcode($post->post_content, 'checkout_for_paypal')){
                     $is_js_required = true;
                 }
@@ -366,6 +383,10 @@ if (!class_exists('CHECKOUT_FOR_PAYPAL')) {
                 if(isset($_POST['cancel_url']) && !empty($_POST['cancel_url'])){
                     $cancel_url = esc_url_raw($_POST['cancel_url']);
                 }
+                $checkout_page_url = '';
+                if(isset($_POST['checkout_page_url']) && !empty($_POST['checkout_page_url'])){
+                    $checkout_page_url = esc_url_raw($_POST['checkout_page_url']);
+                }
                 if(isset($_POST['locale'])){
                     update_option('checkout_for_paypal_locale', sanitize_text_field($_POST['locale']));
                 }
@@ -395,6 +416,7 @@ if (!class_exists('CHECKOUT_FOR_PAYPAL')) {
                 $paypal_options['currency_code'] = $currency_code;
                 $paypal_options['return_url'] = $return_url;
                 $paypal_options['cancel_url'] = $cancel_url;
+                $paypal_options['checkout_page_url'] = $checkout_page_url;
                 $paypal_options['enable_funding'] = $enable_funding;
                 $paypal_options['disable_funding'] = $disable_funding;
                 checkout_for_paypal_update_option($paypal_options);
@@ -417,6 +439,7 @@ if (!class_exists('CHECKOUT_FOR_PAYPAL')) {
                 $app_secret_key_msg = 'Saved. Enter only if you need to update.';
             }
             $cancel_url = (isset($paypal_options['cancel_url']) && !empty($paypal_options['cancel_url'])) ? $paypal_options['cancel_url'] : '';
+            $checkout_page_url = (isset($paypal_options['checkout_page_url']) && !empty($paypal_options['checkout_page_url'])) ? $paypal_options['checkout_page_url'] : '';
             $locale = get_option('checkout_for_paypal_locale');
             if(!isset($locale) || empty($locale)){
                 $locale = '';
@@ -464,43 +487,49 @@ if (!class_exists('CHECKOUT_FOR_PAYPAL')) {
                                         <tr valign="top">
                                             <th scope="row"><label for="app_sandbox_client_id"><?php _e('Sandbox Client ID', 'checkout-for-paypal');?></label></th>
                                             <td><input name="app_sandbox_client_id" type="text" id="app_sandbox_client_id" value="<?php echo esc_attr($app_sandbox_client_id); ?>" class="regular-text">
-                                                <p class="description"><?php _e('The sandbox client ID for your PayPal REST API app', 'checkout-for-paypal');?></p></td>
+                                                <p class="description"><?php _e('The sandbox client ID for your PayPal REST API app (required).', 'checkout-for-paypal');?></p></td>
                                         </tr>
 
                                         <tr valign="top">
                                             <th scope="row"><label for="app_sandbox_secret_key"><?php _e('Sandbox Secret Key', 'checkout-for-paypal');?></label></th>
                                             <td><input name="app_sandbox_secret_key" type="text" id="app_sandbox_secret_key" value="<?php echo esc_attr($app_sandbox_secret_key_msg); ?>" class="regular-text">
-                                                <p class="description"><?php _e('The sandbox secret key for your PayPal REST API app', 'checkout-for-paypal');?></p></td>
+                                                <p class="description"><?php _e('The sandbox secret key for your PayPal REST API app (required)', 'checkout-for-paypal');?></p></td>
                                         </tr>
 
                                         <tr valign="top">
                                             <th scope="row"><label for="app_client_id"><?php _e('Live Client ID', 'checkout-for-paypal');?></label></th>
                                             <td><input name="app_client_id" type="text" id="app_client_id" value="<?php echo esc_attr($paypal_options['app_client_id']); ?>" class="regular-text">
-                                                <p class="description"><?php _e('The client ID for your PayPal REST API app', 'checkout-for-paypal');?></p></td>
+                                                <p class="description"><?php _e('The client ID for your PayPal REST API app (required).', 'checkout-for-paypal');?></p></td>
                                         </tr>
 
                                         <tr valign="top">
                                             <th scope="row"><label for="app_secret_key"><?php _e('Live Secret Key', 'checkout-for-paypal');?></label></th>
                                             <td><input name="app_secret_key" type="text" id="app_secret_key" value="<?php echo esc_attr($app_secret_key_msg); ?>" class="regular-text">
-                                                <p class="description"><?php _e('The secret key for your PayPal REST API app', 'checkout-for-paypal');?></p></td>
+                                                <p class="description"><?php _e('The secret key for your PayPal REST API app (required).', 'checkout-for-paypal');?></p></td>
                                         </tr>
 
                                         <tr valign="top">
                                             <th scope="row"><label for="currency_code"><?php _e('Currency Code', 'checkout-for-paypal');?></label></th>
                                             <td><input name="currency_code" type="text" id="currency_code" value="<?php echo esc_attr($paypal_options['currency_code']); ?>" class="regular-text">
-                                                <p class="description"><?php _e('The default currency of the payment', 'checkout-for-paypal');?> (<?php _e('example', 'checkout-for-paypal');?>: USD, CAD, GBP, EUR)</p></td>
+                                                <p class="description"><?php _e('The default currency of the payment (required)', 'checkout-for-paypal');?> (<?php _e('example', 'checkout-for-paypal');?>: USD, CAD, GBP, EUR)</p></td>
                                         </tr>
 
                                         <tr valign="top">
                                             <th scope="row"><label for="return_url"><?php _e('Return URL', 'checkout-for-paypal');?></label></th>
                                             <td><input name="return_url" type="text" id="return_url" value="<?php echo esc_url($paypal_options['return_url']); ?>" class="regular-text">
-                                                <p class="description"><?php _e('The page URL to which the customer will be redirected after a successful payment (optional).', 'checkout-for-paypal');?></p></td>
+                                                <p class="description"><?php _e('The page URL to which the customer will be redirected after a successful payment (required)', 'checkout-for-paypal');?></p></td>
                                         </tr>
 
                                         <tr valign="top">
                                             <th scope="row"><label for="cancel_url"><?php _e('Cancel URL', 'checkout-for-paypal');?></label></th>
                                             <td><input name="cancel_url" type="text" id="cancel_url" value="<?php echo esc_url($cancel_url); ?>" class="regular-text">
-                                                <p class="description"><?php _e('The page URL to which the customer will be redirected when a payment is cancelled (optional).', 'checkout-for-paypal');?></p></td>
+                                                <p class="description"><?php _e('The page URL to which the customer will be redirected when a payment is cancelled (required).', 'checkout-for-paypal');?></p></td>
+                                        </tr>
+                                        
+                                        <tr valign="top">
+                                            <th scope="row"><label for="checkout_page_url"><?php _e('Checkout Page URL', 'checkout-for-paypal');?></label></th>
+                                            <td><input name="checkout_page_url" type="text" id="checkout_page_url" value="<?php echo esc_url($checkout_page_url); ?>" class="regular-text">
+                                                <p class="description"><?php _e('The URL of your checkout page where the [coforpaypal_checkout] shortcode is placed (required).', 'checkout-for-paypal');?></p></td>
                                         </tr>
 
                                         <tr valign="top">
@@ -1154,6 +1183,7 @@ function checkout_for_paypal_get_empty_options_array(){
     $options['currency_code'] = '';
     $options['return_url'] = '';
     $options['cancel_url'] = '';
+    $options['checkout_page_url'] = '';
     $options['enable_venmo'] = '';
     $options['enable_funding'] = '';
     $options['disable_funding'] = '';

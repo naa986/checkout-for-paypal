@@ -4,7 +4,7 @@ Donate link: https://noorsplugin.com/
 Tags: paypal
 Requires at least: 5.5
 Tested up to: 7.0
-Stable tag: 1.0.47
+Stable tag: 1.0.48
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -19,7 +19,6 @@ This plugin is perfect for eCommerce stores, donation pages, and product sales. 
 === Checkout for PayPal Add-ons ===
 
 * [Variable Price](https://noorsplugin.com/how-to-add-a-price-field-to-a-paypal-button/)
-* [Dynamic Buttons](https://noorsplugin.com/checkout-for-paypal-dynamic-buttons/)
 * [Contact Form 7 Integration](https://noorsplugin.com/checkout-for-paypal-integration-with-contact-form-7/)
 * [Order Export](https://noorsplugin.com/checkout-for-paypal-order-export/)
 
@@ -35,15 +34,14 @@ This plugin is perfect for eCommerce stores, donation pages, and product sales. 
 * **Donations** – Collect contributions for charities, fundraisers, or personal causes
 * **Freelancers & Consultants** – Accept project payments online.
 
-=== How to Create a PayPal Checkout Button ===
+=== How to Use the Plugin ===
 
-In order to create a PayPal Checkout Button insert the shortcode like the following:
+1. Navigate to plugin settings (Checkout for PayPal > Settings) and fill in all required fields (API keys, Page URLs, Currency).
+2. Open checkout page to make sure it contains this shortcode: `[coforpaypal_checkout]`
+3. Create a Product (Checkout for PayPal > Products)
+4. Create a Buy Now button for a product by adding this shortcode to a page: `[coforpaypal_product id="1"]`
 
-`[checkout_for_paypal item_description="My cool product" amount="1.00"]`
-
-Replace the values with your item description and amount.
-
-Note: The content of the button (e.g. name, price) is rendered in HTML and can be altered before checkout.
+Note: You need to replace 1 with the actual product ID.
 
 === Elementor Page Builder Integration ===
 
@@ -97,6 +95,9 @@ This plugin works independently. WooCommerce has its own PayPal integrations.
 none
 
 == Changelog ==
+
+= 1.0.48 =
+* Added a product interface.
 
 = 1.0.47 =
 * Removed older integration.

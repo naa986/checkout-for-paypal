@@ -1,4 +1,5 @@
 <?php
+//everything from this file can be deleted in future
 add_action('wp_ajax_coforpaypal_pp_api_create_order', 'checkout_for_paypal_pp_api_create_order');
 add_action('wp_ajax_nopriv_coforpaypal_pp_api_create_order', 'checkout_for_paypal_pp_api_create_order');
 add_action('wp_ajax_coforpaypal_pp_api_capture_order', 'checkout_for_paypal_pp_api_capture_order');
@@ -151,84 +152,6 @@ function checkout_for_paypal_pp_api_create_order(){
             'additional_data' => array(),
         )
     );
-}
-
-function checkout_for_paypal_get_paypal_access_token() {
-    $options = checkout_for_paypal_get_option();
-    $url = 'https://api-m.paypal.com/v1/oauth2/token';
-    $client_id = $options['app_client_id'];
-    $secret_key = $options['app_secret_key'];
-    if(isset($options['test_mode']) && $options['test_mode'] == "1"){
-        $url = 'https://api-m.sandbox.paypal.com/v1/oauth2/token';
-        $client_id = $options['app_sandbox_client_id'];
-        $secret_key = $options['app_sandbox_secret_key'];
-    }
-    if(!isset($client_id) || empty($client_id)){
-        checkout_for_paypal_debug_log('No client ID. Access token cannot be created.', false);
-        wp_send_json(
-            array(
-                'success' => false,
-                'err_msg' => __('Failed to create an access token using PayPal API.', 'checkout-for-paypal'),
-            )
-        );
-    }
-    if(!isset($secret_key) || empty($secret_key)){
-        checkout_for_paypal_debug_log('No secret key. Access token cannot be created.', false);
-        wp_send_json(
-            array(
-                'success' => false,
-                'err_msg' => __('Failed to create an access token using PayPal API.', 'checkout-for-paypal'),
-            )
-        );
-    }
-    $secret_key = base64_decode($secret_key);
-    $auth = base64_encode($client_id . ':' . $secret_key);
-    checkout_for_paypal_debug_log('Creating access token', true);
-    $response = wp_safe_remote_post($url, array(
-        'method' => 'POST',
-        'headers' => array(
-            'Authorization' => 'Basic ' . $auth,
-            'Content-Type' => 'application/x-www-form-urlencoded'
-        ),
-        'body' => 'grant_type=client_credentials'
-    ));
-
-    if (is_wp_error($response)) {
-        checkout_for_paypal_debug_log('Error response', false);
-        checkout_for_paypal_debug_log_array($response, false);
-        wp_send_json(
-            array(
-                'success' => false,
-                'err_msg' => __('Failed to create an access token using PayPal API.', 'checkout-for-paypal'),
-            )
-        );
-    }
-
-    $body = wp_remote_retrieve_body($response);
-    if(!isset($body) || empty($body)){
-        checkout_for_paypal_debug_log('Error response from invalid body', false);
-        checkout_for_paypal_debug_log_array($response, false);
-        wp_send_json(
-            array(
-                'success' => false,
-                'err_msg' => __('Invalid response body when creating an access token using PayPal API.', 'checkout-for-paypal'),
-            )
-        );
-    }
-    $data = json_decode($body);
-    checkout_for_paypal_debug_log('Response data for access token', true);
-    checkout_for_paypal_debug_log_array($data, true);
-    if(!isset($data->access_token) || empty($data->access_token)){
-        checkout_for_paypal_debug_log('No valid access token from PayPal API response', false);
-        wp_send_json(
-            array(
-                'success' => false,
-                'err_msg' => __('No valid access token from PayPal API response.', 'checkout-for-paypal'),
-            )
-        );
-    }
-
-    return $data->access_token;
 }
 
 function checkout_for_paypal_pp_api_capture_order(){

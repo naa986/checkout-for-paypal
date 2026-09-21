@@ -14,7 +14,7 @@ function checkout_for_paypal_display_addons_menu()
         'page_url' => 'https://noorsplugin.com/how-to-add-a-price-field-to-a-paypal-button/',
     );
     array_push($addons_data, $addon_1);
-    
+    /*
     $addon_2 = array(
         'name' => 'Dynamic Buttons',
         'thumbnail' => CHECKOUT_FOR_PAYPAL_URL.'/addons/images/checkout-for-paypal-dynamic-buttons.png',
@@ -22,22 +22,22 @@ function checkout_for_paypal_display_addons_menu()
         'page_url' => 'https://noorsplugin.com/checkout-for-paypal-dynamic-buttons/',
     );
     array_push($addons_data, $addon_2);
-    
-    $addon_3 = array(
+    */
+    $addon_2 = array(
         'name' => 'Contact Form 7 Integration',
         'thumbnail' => CHECKOUT_FOR_PAYPAL_URL.'/addons/images/checkout-for-paypal-contact-form-7-integration.png',
         'description' => 'Accept PayPal payments with Contact Form 7',
         'page_url' => 'https://noorsplugin.com/checkout-for-paypal-integration-with-contact-form-7/',
     );
-    array_push($addons_data, $addon_3);
+    array_push($addons_data, $addon_2);
     
-    $addon_4 = array(
+    $addon_3 = array(
         'name' => 'Order Export',
         'thumbnail' => CHECKOUT_FOR_PAYPAL_URL.'/addons/images/checkout-for-paypal-order-export.png',
         'description' => 'Export Checkout for PayPal orders',
         'page_url' => 'https://noorsplugin.com/checkout-for-paypal-order-export/',
     );
-    array_push($addons_data, $addon_4);
+    array_push($addons_data, $addon_3);
     
     //Display the list
     foreach ($addons_data as $addon) {
