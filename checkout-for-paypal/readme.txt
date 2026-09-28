@@ -1,20 +1,18 @@
 === Checkout for PayPal ===
 Contributors: naa986
 Donate link: https://noorsplugin.com/
-Tags: paypal
+Tags: paypal, credit card, ecommerce, payments, button
 Requires at least: 5.5
 Tested up to: 7.1
 Stable tag: 1.0.48
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Easily accept PayPal payments on your WordPress site using the official PayPal Checkout API. Perfect for eCommerce, donations, and more.
+Accept PayPal payments on WordPress with a simple PayPal Checkout integration. No shopping cart or WooCommerce required.
 
 == Description ==
 
-[Checkout for PayPal](https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/) is a lightweight and powerful WordPress plugin that lets you easily accept PayPal payments directly on your website using the **PayPal Checkout API**. No coding required — just install, add your PayPal account API credentials, and start receiving payments securely in minutes.
-
-This plugin is perfect for eCommerce stores, donation pages, and product sales. You can even use it alongside e-commerce plugins like WooCommerce without conflicts.
+[Checkout for PayPal](https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/) is a lightweight WordPress PayPal plugin that lets you accept payments directly through PayPal's Checkout API.
 
 === Checkout for PayPal Add-ons ===
 
@@ -24,15 +22,20 @@ This plugin is perfect for eCommerce stores, donation pages, and product sales. 
 
 === Features ===
 
-* **Seamless PayPal Checkout** – Integrates directly with the official PayPal Checkout API for secure transactions.
-* **One-Click Payments** – Customers can pay instantly using PayPal balance, credit, or debit card.
-* **Mobile-Optimized** – Works flawlessly on smartphones, tablets, and desktops.
-* **Shortcode Support** – Add PayPal payment buttons anywhere on your site.
+* **PayPal Checkout** – Accept payments securely through PayPal Checkout directly from your WordPress website.
+* **Accept PayPal Payments** – Let customers pay with PayPal without requiring a traditional shopping cart.
+* **No WooCommerce Required** – Add PayPal payment functionality without installing WooCommerce.
+* **No Shopping Cart Required** – Ideal for single products, services, bookings, donations, and other direct-payment use cases.
+* **Payment Buttons** – Add a payment button to pages, posts, and landing pages.
+* **PayPal Checkout API** – Uses PayPal's Checkout/Orders API to create and process PayPal orders.
+* **Secure Payment Processing** – Payment details are handled by PayPal rather than stored on your WordPress website.
+* **PayPal Sandbox Support** – Test your integration using PayPal's sandbox environment before accepting live payments.
+* **Live and Sandbox Environments** – Easily configure the plugin for either PayPal testing or live transactions.
+* **Simple Configuration** – Configure your PayPal payment settings from the WordPress admin area.
+* **Responsive Checkout** – Provide a PayPal checkout experience that works across desktop and mobile devices.
+* **Lightweight Payment Solution** – Add PayPal payments without the overhead of a complete ecommerce system.
+* **Developer-Friendly Integration** – Built around PayPal's APIs for reliable integration with WordPress.
 * **Custom Amounts** – Accept fixed or variable payment amounts using Variable Price add-on.
-* **No Monthly Fees** – Pay only PayPal's standard transaction fees.
-* **eCommerce Stores** – Sell products or services without a complicated shopping cart.
-* **Donations** – Collect contributions for charities, fundraisers, or personal causes
-* **Freelancers & Consultants** – Accept project payments online.
 
 === How to Use the Plugin ===
 
