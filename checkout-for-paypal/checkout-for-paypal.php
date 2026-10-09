@@ -1,7 +1,7 @@
 <?php
 /*
   Plugin Name: Checkout for PayPal
-  Version: 1.0.48
+  Version: 1.0.49
   Plugin URI: https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/  
   Author: naa986
   Author URI: https://noorsplugin.com/
@@ -18,7 +18,7 @@ if (!class_exists('CHECKOUT_FOR_PAYPAL')) {
     
     class CHECKOUT_FOR_PAYPAL {
 
-        var $plugin_version = '1.0.48';
+        var $plugin_version = '1.0.49';
         var $db_version = '1.0.3';
         var $plugin_url;
         var $plugin_path;
@@ -145,11 +145,14 @@ if (!class_exists('CHECKOUT_FOR_PAYPAL')) {
         }
 
         function enqueue_admin_scripts($hook) {
-            if('coforpaypal_order_page_checkout-for-paypal-addons' != $hook) {
-                return;
+            if('coforpaypal_order_page_checkout-for-paypal-addons' == $hook) {
+                wp_register_style('checkout-for-paypal-addon-menu', CHECKOUT_FOR_PAYPAL_URL.'/addons/checkout-for-paypal-addons-menu.css');
+                wp_enqueue_style('checkout-for-paypal-addon-menu');
             }
-            wp_register_style('checkout-for-paypal-addon-menu', CHECKOUT_FOR_PAYPAL_URL.'/addons/checkout-for-paypal-addons-menu.css');
-            wp_enqueue_style('checkout-for-paypal-addon-menu');
+            global $post_type;
+            if(in_array($hook, ['post.php', 'post-new.php']) && $post_type === 'coforpaypal_product') {
+                wp_enqueue_media();
+            }
         }
 
         function plugin_scripts() {
@@ -274,6 +277,8 @@ if (!class_exists('CHECKOUT_FOR_PAYPAL')) {
                 add_submenu_page('edit.php?post_type=coforpaypal_order', __('Settings', 'checkout-for-paypal'), __('Settings', 'checkout-for-paypal'), 'manage_options', 'checkout-for-paypal-settings', array($this, 'options_page'));
                 add_submenu_page('edit.php?post_type=coforpaypal_order', __('Debug', 'checkout-for-paypal'), __('Debug', 'checkout-for-paypal'), 'manage_options', 'checkout-for-paypal-debug', array($this, 'debug_page'));
                 add_submenu_page('edit.php?post_type=coforpaypal_order', __('Add-ons', 'checkout-for-paypal'), __('Add-ons', 'checkout-for-paypal'), 'manage_options', 'checkout-for-paypal-addons', 'checkout_for_paypal_display_addons_menu');
+                global $submenu;
+                unset($submenu['edit.php?post_type=coforpaypal_order'][10]);
             }
         }
 

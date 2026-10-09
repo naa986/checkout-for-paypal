@@ -1,10 +1,10 @@
 === Checkout for PayPal ===
 Contributors: naa986
 Donate link: https://noorsplugin.com/
-Tags: paypal, credit card, ecommerce, payments, button
+Tags: paypal, credit card, ecommerce, payment, payments
 Requires at least: 5.5
 Tested up to: 7.1
-Stable tag: 1.0.48
+Stable tag: 1.0.49
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -87,17 +87,18 @@ This plugin works independently. WooCommerce has its own PayPal integrations.
 
 == Screenshots ==
 
-1. PayPal Smart Payment Button Demo
-2. Horizontal PayPal Checkout Button
-3. PayPal Orders
-4. Email Sender Options
-5. Purchase Receipt Email Settings
-6. Sale Notification Email Settings
+1. PayPal Checkout
+2. Orders Menu
+3. Purchase Receipt Email Settings
+4. Sale Notification Email Settings
 
 == Upgrade Notice ==
 none
 
 == Changelog ==
+
+= 1.0.49 =
+* Added button image option for product.
 
 = 1.0.48 =
 * Added a product interface.

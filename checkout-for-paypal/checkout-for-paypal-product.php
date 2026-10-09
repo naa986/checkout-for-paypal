@@ -129,6 +129,12 @@ function checkout_for_paypal_render_product_details_meta_box($post) {
     if(!isset($button_text) || empty($button_text)){
         $button_text = '';
     }
+    $button_image = get_post_meta($post_id, '_coforpaypal_product_button_image', true);
+    if(!isset($button_image) || empty($button_image)){
+        $button_image = '';
+    }
+    
+    wp_nonce_field(basename(__FILE__), 'coforpaypal_product_details_meta_box_nonce');
     ?>
     <table class="form-table">
         <tbody>
@@ -158,13 +164,53 @@ function checkout_for_paypal_render_product_details_meta_box($post) {
                 </th>
                 <td>
                     <input name="_coforpaypal_product_button_text" type="text" id="_coforpaypal_product_button_text" value="<?php echo esc_attr($button_text); ?>" class="regular-text">
-                    <p class="description"><?php _e('The text displayed on the payment button (optional). Example: Buy Now', 'checkout-for-paypal'); ?></p>
+                    <p class="description"><?php _e('The text displayed on the plain payment button (optional). Example: Buy Now', 'checkout-for-paypal'); ?></p>
+                </td>
+            </tr>
+            
+            <tr valign="top">
+                <th scope="row">
+                    <label for="_coforpaypal_product_button_image"><?php _e('Button Image', 'checkout-for-paypal'); ?></label>
+                </th>
+                <td>
+                    <input name="_coforpaypal_product_button_image" type="text" id="_coforpaypal_product_button_image" value="<?php echo esc_url($button_image); ?>" class="regular-text" placeholder="https://example.com/uploads/button.png">
+                    <button type="button" class="button" id="coforpaypal_product_button_image_upload_btn"><?php _e('Select Image', 'checkout-for-paypal'); ?></button>
+                    <p class="description"><?php _e('The URL of the image that will act as the payment button (optional). This replaces the plain payment button.', 'checkout-for-paypal'); ?></p>
                 </td>
             </tr>
         </tbody>
     </table>
+    <script>
+    jQuery(document).ready(function($) {
+        var mediaUploader;
+
+        $('#coforpaypal_product_button_image_upload_btn').on('click', function(e) {
+            e.preventDefault();
+
+            if (mediaUploader) {
+                mediaUploader.open();
+                return;
+            }
+
+            mediaUploader = wp.media({
+                title: <?php echo wp_json_encode(__('Select Image', 'checkout-for-paypal')); ?>,
+                button: { 
+                    text: <?php echo wp_json_encode(__('Use this image', 'checkout-for-paypal')); ?> 
+                },
+                multiple: false
+            });
+
+            mediaUploader.on('select', function() {
+                var attachment = mediaUploader.state().get('selection').first().toJSON();
+                $('#_coforpaypal_product_button_image').val(attachment.url);
+            });
+
+            mediaUploader.open();
+        });
+    });
+    </script>
     <?php
-    wp_nonce_field(basename(__FILE__), 'coforpaypal_product_details_meta_box_nonce');
+    
 }
 
 function checkout_for_paypal_product_details_meta_box_save($post_id, $post) {
@@ -193,6 +239,10 @@ function checkout_for_paypal_product_details_meta_box_save($post_id, $post) {
         $button_text = sanitize_text_field($_POST['_coforpaypal_product_button_text']);
         update_post_meta($post_id, '_coforpaypal_product_button_text', $button_text);
     }
+    if (isset($_POST['_coforpaypal_product_button_image'])) {
+        $button_image = esc_url_raw($_POST['_coforpaypal_product_button_image']);
+        update_post_meta($post_id, '_coforpaypal_product_button_image', $button_image);
+    }
 }
 
 add_action('save_post_coforpaypal_product', 'checkout_for_paypal_product_details_meta_box_save', 10, 2);
@@ -209,6 +259,7 @@ function checkout_for_paypal_get_product($product_id) {
     $price = get_post_meta($product_id, '_coforpaypal_product_price', true);
     $shipping = get_post_meta($product_id, '_coforpaypal_product_shipping', true);
     $button_text = get_post_meta($product_id, '_coforpaypal_product_button_text', true);
+    $button_image = get_post_meta($product_id, '_coforpaypal_product_button_image', true);
 
     return array(
         'id'          => $post->ID,
@@ -216,6 +267,7 @@ function checkout_for_paypal_get_product($product_id) {
         'description' => $post->post_content,
         'price'       => $price,
         'shipping'    => $shipping,
-        'button_text' => $button_text
+        'button_text' => $button_text,
+        'button_image' => $button_image
     );
 }

@@ -11,7 +11,7 @@ function checkout_for_paypal_register_order_type() {
         'new_item' => __('New Order', 'checkout-for-paypal'),
         'edit_item' => __('Edit Order', 'checkout-for-paypal'),
         'view_item' => __('View Order', 'checkout-for-paypal'),
-        'all_items' => __('All Orders', 'checkout-for-paypal'),
+        'all_items' => __('Orders', 'checkout-for-paypal'),
         'search_items' => __('Search Orders', 'checkout-for-paypal'),
         'parent_item_colon' => __('Parent Orders:', 'checkout-for-paypal'),
         'not_found' => __('No Orders found.', 'checkout-for-paypal'),
