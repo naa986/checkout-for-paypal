@@ -44,6 +44,7 @@ if (!class_exists('CHECKOUT_FOR_PAYPAL')) {
         function plugin_includes() {
             include_once('checkout-for-paypal-order.php');
             include_once('checkout-for-paypal-product.php');
+            include_once('checkout-for-paypal-member.php');
             include_once('cfp-functions.php');
             include_once('cfp-email.php');
             include_once('cfp-api.php');
@@ -54,6 +55,7 @@ if (!class_exists('CHECKOUT_FOR_PAYPAL')) {
 
         function loader_operations() {
             add_action('plugins_loaded', array($this, 'plugins_loaded_handler'));
+            add_action('admin_init', array($this, 'admin_init_handler'));
             add_action('admin_notices', array($this, 'admin_notice'));
             add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
             add_action('wp_enqueue_scripts', array($this, 'plugin_scripts'));
@@ -67,10 +69,15 @@ if (!class_exists('CHECKOUT_FOR_PAYPAL')) {
             add_filter('manage_coforpaypal_product_posts_columns', 'checkout_for_paypal_product_columns');
             add_action('manage_coforpaypal_product_posts_custom_column', 'checkout_for_paypal_product_custom_column', 10, 2);
             //
+            add_action('add_meta_boxes_coforpaypal_member', 'checkout_for_paypal_member_meta_boxes');
+            add_filter('manage_coforpaypal_member_posts_columns', 'checkout_for_paypal_member_columns');
+            add_action('manage_coforpaypal_member_posts_custom_column', 'checkout_for_paypal_member_custom_column', 10, 2);
+            //
             add_shortcode('checkout_for_paypal', 'checkout_for_paypal_button_handler');
             //
             add_shortcode('coforpaypal_product', 'checkout_for_paypal_product_button_handler');
             add_shortcode('coforpaypal_checkout', 'checkout_for_paypal_checkout_button_handler');
+            add_shortcode('coforpaypal_protected', 'checkout_for_paypal_protected_content_handler');
         }
 
         function plugins_loaded_handler() {  //Runs when plugins_loaded action gets fired
@@ -78,11 +85,16 @@ if (!class_exists('CHECKOUT_FOR_PAYPAL')) {
                 add_filter('plugin_action_links', array($this, 'add_plugin_action_links'), 10, 2);
             }
             load_plugin_textdomain( 'checkout-for-paypal', false, plugin_basename( dirname( __FILE__ ) ) . '/languages' );
+            //$this->check_upgrade();
+        }
+        
+        function admin_init_handler() {  
             $this->check_upgrade();
         }
 
         function activate_handler() {
             checkout_for_paypal_set_default_email_options();
+            checkout_for_paypal_set_default_membership_options();
             //migration code - added 17-11-2023
             $options = checkout_for_paypal_get_option();
             if(isset($options['enable_venmo']) && $options['enable_venmo'] == '1'){
@@ -142,6 +154,8 @@ if (!class_exists('CHECKOUT_FOR_PAYPAL')) {
             checkout_for_paypal_register_order_type();
             //register product type
             checkout_for_paypal_register_product_type();
+            //register member type
+            checkout_for_paypal_register_member_type();
         }
 
         function enqueue_admin_scripts($hook) {
@@ -285,7 +299,8 @@ if (!class_exists('CHECKOUT_FOR_PAYPAL')) {
         function options_page() {
             $plugin_tabs = array(
                 'checkout-for-paypal-settings' => __('General', 'checkout-for-paypal'),
-                'checkout-for-paypal-settings&tab=emails' => __('Emails', 'checkout-for-paypal')
+                'checkout-for-paypal-settings&tab=emails' => __('Emails', 'checkout-for-paypal'),
+                'checkout-for-paypal-settings&tab=membership' => __('Membership', 'checkout-for-paypal')
             );
             echo '<div class="wrap"><h2>'.__('Checkout for PayPal', 'checkout-for-paypal').' v' . CHECKOUT_FOR_PAYPAL_VERSION . '</h2>';
             $url = 'https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/';
@@ -335,6 +350,9 @@ if (!class_exists('CHECKOUT_FOR_PAYPAL')) {
                 {
                    case 'emails':
                        $this->email_settings();
+                       break;
+                   case 'membership':
+                       $this->membership_settings();
                        break;
                 }
             }
@@ -784,6 +802,264 @@ if (!class_exists('CHECKOUT_FOR_PAYPAL')) {
                         </td>
                     </tr>
                 </tbody> 
+            </table>
+            <?php
+        }
+
+        function membership_settings() {
+            if (isset($_POST['checkout_for_paypal_update_membership_settings'])) {
+                $nonce = sanitize_text_field($_REQUEST['_wpnonce']);
+                if (!wp_verify_nonce($nonce, 'checkout_for_paypal_membership_settings_nonce')) {
+                    wp_die(__('Error! Nonce Security Check Failed! please save the membership settings again.', 'checkout-for-paypal'));
+                }
+                $_POST = stripslashes_deep($_POST);
+                $membership_options = array();
+
+                $membership_options['msg_login_required'] = isset($_POST['msg_login_required']) ? wp_kses_post($_POST['msg_login_required']) : '';
+                $membership_options['msg_membership_expired'] = isset($_POST['msg_membership_expired']) ? wp_kses_post($_POST['msg_membership_expired']) : '';
+                $membership_options['msg_membership_pending'] = isset($_POST['msg_membership_pending']) ? wp_kses_post($_POST['msg_membership_pending']) : '';
+                $membership_options['msg_access_denied'] = isset($_POST['msg_access_denied']) ? wp_kses_post($_POST['msg_access_denied']) : '';
+
+                $membership_options['new_user_email_enabled'] = (isset($_POST["new_user_email_enabled"]) && $_POST["new_user_email_enabled"] == '1') ? '1' : '';
+                $membership_options['new_user_email_subject'] = isset($_POST['new_user_email_subject']) ? sanitize_text_field($_POST['new_user_email_subject']) : '';
+                $membership_options['new_user_email_type'] = isset($_POST['new_user_email_type']) ? sanitize_text_field($_POST['new_user_email_type']) : 'plain';
+                $membership_options['new_user_email_body'] = isset($_POST['new_user_email_body']) ? wp_kses_post($_POST['new_user_email_body']) : '';
+
+                $membership_options['existing_user_email_enabled'] = (isset($_POST["existing_user_email_enabled"]) && $_POST["existing_user_email_enabled"] == '1') ? '1' : '';
+                $membership_options['existing_user_email_subject'] = isset($_POST['existing_user_email_subject']) ? sanitize_text_field($_POST['existing_user_email_subject']) : '';
+                $membership_options['existing_user_email_type'] = isset($_POST['existing_user_email_type']) ? sanitize_text_field($_POST['existing_user_email_type']) : 'plain';
+                $membership_options['existing_user_email_body'] = isset($_POST['existing_user_email_body']) ? wp_kses_post($_POST['existing_user_email_body']) : '';
+
+                $membership_options['active_notification_email_enabled'] = (isset($_POST["active_notification_email_enabled"]) && $_POST["active_notification_email_enabled"] == '1') ? '1' : '';
+                $membership_options['active_notification_email_subject'] = isset($_POST['active_notification_email_subject']) ? sanitize_text_field($_POST['active_notification_email_subject']) : '';
+                $membership_options['active_notification_email_type'] = isset($_POST['active_notification_email_type']) ? sanitize_text_field($_POST['active_notification_email_type']) : 'plain';
+                $membership_options['active_notification_email_body'] = isset($_POST['active_notification_email_body']) ? wp_kses_post($_POST['active_notification_email_body']) : '';
+
+                checkout_for_paypal_update_membership_option($membership_options);
+                echo '<div id="message" class="updated fade"><p><strong>' . __('Settings Saved', 'checkout-for-paypal') . '!</strong></p></div>';
+            }
+
+            $options = checkout_for_paypal_get_membership_option();
+            ?>
+            <table class="coforpaypal-membership-settings-table">
+                <tbody>
+                    <tr>
+                        <td valign="top">
+                            <form method="post" action="">
+                                <?php wp_nonce_field('checkout_for_paypal_membership_settings_nonce'); ?>
+
+                                <h2><?php _e('Content Protection Messages', 'checkout-for-paypal'); ?></h2>
+                                <p><?php _e('Configure messages displayed when a visitor attempts to access protected pages or content.', 'checkout-for-paypal'); ?></p>
+
+                                <table class="form-table">
+                                    <tbody>
+                                        <tr valign="top">
+                                            <th scope="row"><label for="msg_login_required"><?php _e('Login Required Message', 'checkout-for-paypal'); ?></label></th>
+                                            <td>
+                                                <?php wp_editor($options['msg_login_required'], 'msg_login_required', array('textarea_name' => 'msg_login_required', 'textarea_rows' => 4)); ?>
+                                                <p class="description"><?php _e('Displayed when a logged-out visitor views protected content. Available tags: {login_url}', 'checkout-for-paypal'); ?></p>
+                                            </td>
+                                        </tr>
+                                        <tr valign="top">
+                                            <th scope="row"><label for="msg_membership_expired"><?php _e('Membership Expired Message', 'checkout-for-paypal'); ?></label></th>
+                                            <td>
+                                                <?php wp_editor($options['msg_membership_expired'], 'msg_membership_expired', array('textarea_name' => 'msg_membership_expired', 'textarea_rows' => 4)); ?>
+                                                <p class="description"><?php _e('Displayed when a logged-in user whose membership has expired attempts to view protected content. Available tags: {expiry_date}, {product_id}, {product_name}, {checkout_button}', 'checkout-for-paypal'); ?></p>
+                                            </td>
+                                        </tr>
+                                        <tr valign="top">
+                                            <th scope="row"><label for="msg_membership_pending"><?php _e('Membership Pending Message', 'checkout-for-paypal'); ?></label></th>
+                                            <td>
+                                                <?php 
+                                                $msg_pending_val = isset($options['msg_membership_pending']) ? $options['msg_membership_pending'] : '';
+                                                wp_editor($msg_pending_val, 'msg_membership_pending', array('textarea_name' => 'msg_membership_pending', 'textarea_rows' => 4)); 
+                                                ?>
+                                                <p class="description"><?php _e('Displayed when a member whose account status is Pending attempts to view protected content. Available tags: {product_id}, {product_name}', 'checkout-for-paypal'); ?></p>
+                                            </td>
+                                        </tr>
+                                        <tr valign="top">
+                                            <th scope="row"><label for="msg_access_denied"><?php _e('No Membership / Access Denied Message', 'checkout-for-paypal'); ?></label></th>
+                                            <td>
+                                                <?php wp_editor($options['msg_access_denied'], 'msg_access_denied', array('textarea_name' => 'msg_access_denied', 'textarea_rows' => 4)); ?>
+                                                <p class="description"><?php _e('Displayed when a logged-in user who does not hold the required membership level views protected content. Available tags: {product_id}, {product_name}, {checkout_button}', 'checkout-for-paypal'); ?></p>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+
+                                <h2><?php _e('Membership / User Account Email (New Users)', 'checkout-for-paypal'); ?></h2>
+                                <p><?php _e('This email is sent to newly created members after completing payment, delivering their generated login credentials.', 'checkout-for-paypal'); ?></p>
+
+                                <table class="form-table">
+                                    <tbody>
+                                        <tr valign="top">
+                                            <th scope="row"><?php _e('Enable/Disable', 'checkout-for-paypal'); ?></th>
+                                            <td>
+                                                <fieldset>
+                                                    <legend class="screen-reader-text"><span><?php _e('Enable/Disable', 'checkout-for-paypal'); ?></span></legend>
+                                                    <label for="new_user_email_enabled">
+                                                        <?php 
+                                                        $new_user_email_enabled_val = isset($options['new_user_email_enabled']) ? $options['new_user_email_enabled'] : (isset($options['membership_email_enabled']) ? $options['membership_email_enabled'] : '');
+                                                        ?>
+                                                        <input name="new_user_email_enabled" type="checkbox" id="new_user_email_enabled" <?php if ($new_user_email_enabled_val == '1') echo ' checked="checked"'; ?> value="1">
+                                                        <?php _e('Enable this email notification', 'checkout-for-paypal'); ?>
+                                                    </label>
+                                                </fieldset>
+                                            </td>
+                                        </tr>
+                                        <tr valign="top">
+                                            <th scope="row"><label for="new_user_email_subject"><?php _e('Subject', 'checkout-for-paypal'); ?></label></th>
+                                            <td>
+                                                <?php 
+                                                $new_user_subject_val = isset($options['new_user_email_subject']) ? $options['new_user_email_subject'] : (isset($options['membership_email_subject']) ? $options['membership_email_subject'] : '');
+                                                ?>
+                                                <input name="new_user_email_subject" type="text" id="new_user_email_subject" value="<?php echo esc_attr($new_user_subject_val); ?>" class="regular-text">
+                                                <p class="description"><?php _e('The subject line for the new member account email.', 'checkout-for-paypal'); ?></p>
+                                            </td>
+                                        </tr>
+                                        <tr valign="top">
+                                            <th scope="row"><label for="new_user_email_type"><?php _e('Email Type', 'checkout-for-paypal'); ?></label></th>
+                                            <td>
+                                                <?php 
+                                                $new_user_type_val = isset($options['new_user_email_type']) ? $options['new_user_email_type'] : (isset($options['membership_email_type']) ? $options['membership_email_type'] : 'plain');
+                                                ?>
+                                                <select name="new_user_email_type" id="new_user_email_type">
+                                                    <option <?php echo ($new_user_type_val === 'plain') ? 'selected="selected"' : ''; ?> value="plain"><?php _e('Plain Text', 'checkout-for-paypal'); ?></option>
+                                                    <option <?php echo ($new_user_type_val === 'html') ? 'selected="selected"' : ''; ?> value="html"><?php _e('HTML', 'checkout-for-paypal'); ?></option>
+                                                </select>
+                                                <p class="description"><?php _e('The content type of the new member account email.', 'checkout-for-paypal'); ?></p>
+                                            </td>
+                                        </tr>
+                                        <tr valign="top">
+                                            <th scope="row"><label for="new_user_email_body"><?php _e('Email Body', 'checkout-for-paypal'); ?></label></th>
+                                            <td>
+                                                <?php 
+                                                $new_user_body_val = isset($options['new_user_email_body']) ? $options['new_user_email_body'] : (isset($options['membership_email_body']) ? $options['membership_email_body'] : '');
+                                                wp_editor($new_user_body_val, 'new_user_email_body', array('textarea_name' => 'new_user_email_body')); 
+                                                ?>
+                                                <p class="description"><?php _e('The main content of the new member account email. Available tags: {given_name}, {surname}, {username}, {password}, {login_url}, {expiry_date}, {txn_id}, {product_name}, {amount}, {currency_code}.', 'checkout-for-paypal'); ?></p>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+
+                                <h2><?php _e('Existing User Membership Payment Email', 'checkout-for-paypal'); ?></h2>
+                                <p><?php _e('This email is sent to users who already had an account when purchasing a membership product (does not include password).', 'checkout-for-paypal'); ?></p>
+
+                                <table class="form-table">
+                                    <tbody>
+                                        <tr valign="top">
+                                            <th scope="row"><?php _e('Enable/Disable', 'checkout-for-paypal'); ?></th>
+                                            <td>
+                                                <fieldset>
+                                                    <legend class="screen-reader-text"><span><?php _e('Enable/Disable', 'checkout-for-paypal'); ?></span></legend>
+                                                    <label for="existing_user_email_enabled">
+                                                        <?php 
+                                                        $existing_user_email_enabled_val = isset($options['existing_user_email_enabled']) ? $options['existing_user_email_enabled'] : (isset($options['existing_member_email_enabled']) ? $options['existing_member_email_enabled'] : '');
+                                                        ?>
+                                                        <input name="existing_user_email_enabled" type="checkbox" id="existing_user_email_enabled" <?php if ($existing_user_email_enabled_val == '1') echo ' checked="checked"'; ?> value="1">
+                                                        <?php _e('Enable this email notification', 'checkout-for-paypal'); ?>
+                                                    </label>
+                                                </fieldset>
+                                            </td>
+                                        </tr>
+                                        <tr valign="top">
+                                            <th scope="row"><label for="existing_user_email_subject"><?php _e('Subject', 'checkout-for-paypal'); ?></label></th>
+                                            <td>
+                                                <?php 
+                                                $existing_user_subject_val = isset($options['existing_user_email_subject']) ? $options['existing_user_email_subject'] : (isset($options['existing_member_email_subject']) ? $options['existing_member_email_subject'] : '');
+                                                ?>
+                                                <input name="existing_user_email_subject" type="text" id="existing_user_email_subject" value="<?php echo esc_attr($existing_user_subject_val); ?>" class="regular-text">
+                                                <p class="description"><?php _e('The subject line for the existing user membership email.', 'checkout-for-paypal'); ?></p>
+                                            </td>
+                                        </tr>
+                                        <tr valign="top">
+                                            <th scope="row"><label for="existing_user_email_type"><?php _e('Email Type', 'checkout-for-paypal'); ?></label></th>
+                                            <td>
+                                                <?php 
+                                                $existing_user_type_val = isset($options['existing_user_email_type']) ? $options['existing_user_email_type'] : (isset($options['existing_member_email_type']) ? $options['existing_member_email_type'] : 'plain');
+                                                ?>
+                                                <select name="existing_user_email_type" id="existing_user_email_type">
+                                                    <option <?php echo ($existing_user_type_val === 'plain') ? 'selected="selected"' : ''; ?> value="plain"><?php _e('Plain Text', 'checkout-for-paypal'); ?></option>
+                                                    <option <?php echo ($existing_user_type_val === 'html') ? 'selected="selected"' : ''; ?> value="html"><?php _e('HTML', 'checkout-for-paypal'); ?></option>
+                                                </select>
+                                                <p class="description"><?php _e('The content type of the existing user membership email.', 'checkout-for-paypal'); ?></p>
+                                            </td>
+                                        </tr>
+                                        <tr valign="top">
+                                            <th scope="row"><label for="existing_user_email_body"><?php _e('Email Body', 'checkout-for-paypal'); ?></label></th>
+                                            <td>
+                                                <?php 
+                                                $existing_email_body_val = isset($options['existing_user_email_body']) ? $options['existing_user_email_body'] : (isset($options['existing_member_email_body']) ? $options['existing_member_email_body'] : '');
+                                                wp_editor($existing_email_body_val, 'existing_user_email_body', array('textarea_name' => 'existing_user_email_body')); 
+                                                ?>
+                                                <p class="description"><?php _e('The main content of the existing user membership email. Available tags: {given_name}, {surname}, {username}, {login_url}, {expiry_date}, {txn_id}, {product_name}, {amount}, {currency_code}.', 'checkout-for-paypal'); ?></p>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+
+                                <h2><?php _e('Membership Activated Notification Email', 'checkout-for-paypal'); ?></h2>
+                                <p><?php _e('This email is sent when a membership becomes active (e.g., when an order is completed, or when an administrator manually changes the member status from Pending to Active).', 'checkout-for-paypal'); ?></p>
+
+                                <table class="form-table">
+                                    <tbody>
+                                        <tr valign="top">
+                                            <th scope="row"><?php _e('Enable/Disable', 'checkout-for-paypal'); ?></th>
+                                            <td>
+                                                <fieldset>
+                                                    <legend class="screen-reader-text"><span><?php _e('Enable/Disable', 'checkout-for-paypal'); ?></span></legend>
+                                                    <label for="active_notification_email_enabled">
+                                                        <input name="active_notification_email_enabled" type="checkbox" id="active_notification_email_enabled" <?php if (isset($options['active_notification_email_enabled']) && $options['active_notification_email_enabled'] == '1') echo ' checked="checked"'; ?> value="1">
+                                                        <?php _e('Enable this email notification', 'checkout-for-paypal'); ?>
+                                                    </label>
+                                                </fieldset>
+                                            </td>
+                                        </tr>
+                                        <tr valign="top">
+                                            <th scope="row"><label for="active_notification_email_subject"><?php _e('Subject', 'checkout-for-paypal'); ?></label></th>
+                                            <td>
+                                                <input name="active_notification_email_subject" type="text" id="active_notification_email_subject" value="<?php echo isset($options['active_notification_email_subject']) ? esc_attr($options['active_notification_email_subject']) : ''; ?>" class="regular-text">
+                                                <p class="description"><?php _e('The subject line for the membership activated notification email.', 'checkout-for-paypal'); ?></p>
+                                            </td>
+                                        </tr>
+                                        <tr valign="top">
+                                            <th scope="row"><label for="active_notification_email_type"><?php _e('Email Type', 'checkout-for-paypal'); ?></label></th>
+                                            <td>
+                                                <select name="active_notification_email_type" id="active_notification_email_type">
+                                                    <option <?php echo (isset($options['active_notification_email_type']) && $options['active_notification_email_type'] === 'plain') ? 'selected="selected"' : ''; ?> value="plain"><?php _e('Plain Text', 'checkout-for-paypal'); ?></option>
+                                                    <option <?php echo (isset($options['active_notification_email_type']) && $options['active_notification_email_type'] === 'html') ? 'selected="selected"' : ''; ?> value="html"><?php _e('HTML', 'checkout-for-paypal'); ?></option>
+                                                </select>
+                                                <p class="description"><?php _e('The content type of the membership activated notification email.', 'checkout-for-paypal'); ?></p>
+                                            </td>
+                                        </tr>
+                                        <tr valign="top">
+                                            <th scope="row"><label for="active_notification_email_body"><?php _e('Email Body', 'checkout-for-paypal'); ?></label></th>
+                                            <td>
+                                                <?php 
+                                                $active_email_body_val = isset($options['active_notification_email_body']) ? $options['active_notification_email_body'] : '';
+                                                wp_editor($active_email_body_val, 'active_notification_email_body', array('textarea_name' => 'active_notification_email_body')); 
+                                                ?>
+                                                <p class="description"><?php _e('The main content of the membership activated notification email. Available tags: {given_name}, {surname}, {username}, {login_url}, {expiry_date}, {product_name}, {product_id}.', 'checkout-for-paypal'); ?></p>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+
+                                <p class="submit"><input type="submit" name="checkout_for_paypal_update_membership_settings" id="checkout_for_paypal_update_membership_settings" class="button button-primary" value="<?php _e('Save Changes', 'checkout-for-paypal'); ?>"></p>
+                            </form>
+                        </td>
+                        <td valign="top" style="width: 300px">
+                            <div style="background: #ffc; border: 1px solid #333; margin: 2px; padding: 3px 15px">
+                                <h3><?php _e('How to Protect Content', 'checkout-for-paypal'); ?></h3>
+                                <p><strong><?php _e('1. Page-Level Protection:', 'checkout-for-paypal'); ?></strong><br>
+                                <?php _e('When editing any Page or Post, use the "Membership Protection" meta box to restrict the entire page.', 'checkout-for-paypal'); ?></p>
+                                <p><strong><?php _e('2. Shortcode Protection:', 'checkout-for-paypal'); ?></strong><br>
+                                <code>[coforpaypal_protected product_id="123"]<?php _e('Member-only content here', 'checkout-for-paypal'); ?>[/coforpaypal_protected]</code></p>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
             </table>
             <?php
         }

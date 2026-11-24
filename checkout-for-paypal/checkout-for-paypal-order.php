@@ -62,14 +62,16 @@ function checkout_for_paypal_order_columns($columns) {
     unset($columns['title']);
     unset($columns['date']);
     $edited_columns = array(
-        'title' => __('Order', 'checkout-for-paypal'),
-        'txn_id' => __('Transaction ID', 'checkout-for-paypal'),
-        'first_name' => __('First Name', 'checkout-for-paypal'),
-        'last_name' => __('Last Name', 'checkout-for-paypal'),
-        'email' => __('Email', 'checkout-for-paypal'),
-        'mc_gross' => __('Total', 'checkout-for-paypal'),
-        'payment_status' => __('Payment Status', 'checkout-for-paypal'),
-        'date' => __('Date', 'checkout-for-paypal')
+        'title'           => __('Order', 'checkout-for-paypal'),
+        'txn_id'          => __('Transaction ID', 'checkout-for-paypal'),
+        'first_name'      => __('First Name', 'checkout-for-paypal'),
+        'last_name'       => __('Last Name', 'checkout-for-paypal'),
+        'email'           => __('Email', 'checkout-for-paypal'),
+        'membership'      => __('Membership', 'checkout-for-paypal'),
+        'wp_user_id'      => __('WordPress User ID', 'checkout-for-paypal'),
+        'mc_gross'        => __('Total', 'checkout-for-paypal'),
+        'payment_status'  => __('Payment Status', 'checkout-for-paypal'),
+        'date'            => __('Date', 'checkout-for-paypal')
     );
     return array_merge($columns, $edited_columns);
 }
@@ -90,6 +92,27 @@ function checkout_for_paypal_custom_column($column, $post_id) {
             break;
         case 'email' :
             echo esc_html(get_post_meta($post_id, '_email', true));
+            break;
+        case 'membership' :
+            $is_membership = get_post_meta($post_id, '_is_membership_order', true);
+            if ($is_membership == '1') {
+                echo '<span style="color:green;font-weight:bold;">' . __('Yes', 'checkout-for-paypal') . '</span>';
+            } else {
+                echo '&#8212;';
+            }
+            break;
+        case 'wp_user_id' :
+            $user_id = get_post_meta($post_id, '_user_id', true);
+            if (!empty($user_id)) {
+                $user = get_userdata($user_id);
+                if ($user) {
+                    echo '<a href="' . esc_url(get_edit_user_link($user_id)) . '">' . esc_html($user_id) . ' (' . esc_html($user->user_login) . ')</a>';
+                } else {
+                    echo esc_html($user_id);
+                }
+            } else {
+                echo '&#8212;';
+            }
             break;
         case 'mc_gross' :
             echo esc_html(get_post_meta($post_id, '_mc_gross', true));
@@ -131,6 +154,7 @@ function coforpaypal_render_order_data_meta_box($post){
     if(!isset($payment_status) || empty($payment_status)){
         $payment_status = '';
     }
+    $user_id = get_post_meta($post_id, '_user_id', true);
     ?>
     <table>
         <tbody>
@@ -162,6 +186,25 @@ function coforpaypal_render_order_data_meta_box($post){
                                 <th scope="row"><label for="_coforpaypal_order_payment_status"><?php _e('Payment Status', 'checkout-for-paypal');?></label></th>
                                 <td><input name="_coforpaypal_order_payment_status" type="text" id="_coforpaypal_order_payment_status" value="<?php echo esc_attr($payment_status); ?>" class="regular-text"></td>
                             </tr>
+                            <?php if(!empty($user_id)): ?>
+                            <tr valign="top">
+                                <th scope="row"><label><?php _e('Member User Account', 'checkout-for-paypal');?></label></th>
+                                <td>
+                                    <?php 
+                                    $user = get_userdata($user_id);
+                                    if($user){
+                                        echo '<a href="' . esc_url(get_edit_user_link($user_id)) . '" target="_blank">' . esc_html($user->user_login) . ' (' . esc_html($user->user_email) . ')</a>';
+                                    } else {
+                                        echo esc_html($user_id);
+                                    }
+                                    $member_record_id = get_post_meta($post_id, '_member_record_id', true);
+                                    if(!empty($member_record_id)){
+                                        echo ' &mdash; <a href="' . esc_url(get_edit_post_link($member_record_id)) . '" target="_blank">' . __('View Member Record', 'checkout-for-paypal') . '</a>';
+                                    }
+                                    ?>
+                                </td>
+                            </tr>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </td>

@@ -696,6 +696,225 @@ function checkout_for_paypal_checkout_process_order_handler($capture_response_da
         remove_filter('wp_mail_from', 'checkout_for_paypal_set_email_from');
         remove_filter('wp_mail_from_name', 'checkout_for_paypal_set_email_from_name');
         
+        // Check and handle Membership / User Registration
+        $product_id = isset($payment_data['product_id']) ? $payment_data['product_id'] : '';
+        if(!empty($product_id)){
+            $is_membership = get_post_meta($product_id, '_coforpaypal_product_is_membership', true);
+            if($is_membership == '1' && !empty($payment_data['payer_email'])){
+                checkout_for_paypal_debug_log("Membership product detected (Product ID: ".$product_id."). Processing membership registration.", true);
+                $membership_role = get_post_meta($product_id, '_coforpaypal_product_membership_role', true);
+                if(empty($membership_role)){
+                    $membership_role = 'subscriber';
+                }
+                $duration_days = get_post_meta($product_id, '_coforpaypal_product_membership_duration', true);
+                
+                $user_email = $payment_data['payer_email'];
+                $existing_user = get_user_by('email', $user_email);
+                $password = '';
+                $is_new_user = false;
+
+                if(!$existing_user){
+                    // Generate unique username based on payer email
+                    $base_username = sanitize_user(current(explode('@', $user_email)), true);
+                    if(empty($base_username)){
+                        $base_username = 'member';
+                    }
+                    $username = $base_username;
+                    $counter = 1;
+                    while(username_exists($username)){
+                        $username = $base_username . $counter;
+                        $counter++;
+                    }
+
+                    $password = wp_generate_password(12, true);
+                    $first_name = isset($payment_data['given_name']) ? $payment_data['given_name'] : '';
+                    $last_name = isset($payment_data['surname']) ? $payment_data['surname'] : '';
+
+                    $user_id = wp_create_user($username, $password, $user_email);
+                    if(!is_wp_error($user_id)){
+                        $user = new WP_User($user_id);
+                        $user->set_role($membership_role);
+                        if(!empty($first_name)){
+                            update_user_meta($user_id, 'first_name', $first_name);
+                        }
+                        if(!empty($last_name)){
+                            update_user_meta($user_id, 'last_name', $last_name);
+                        }
+                        $is_new_user = true;
+                        $payment_data['username'] = $username;
+                        $payment_data['password'] = $password;
+                        $payment_data['login_url'] = wp_login_url();
+                        update_post_meta($post_id, '_user_id', $user_id);
+                        update_post_meta($post_id, '_is_membership_order', '1');
+                        checkout_for_paypal_debug_log("Created new WordPress user ID: " . $user_id . " with role: " . $membership_role, true);
+                    } else {
+                        checkout_for_paypal_debug_log("Error creating WordPress user: " . $user_id->get_error_message(), false);
+                    }
+                } else {
+                    $user_id = $existing_user->ID;
+                    // Do not alter existing user roles from other plugins
+                    $payment_data['username'] = $existing_user->user_login;
+                    $payment_data['login_url'] = wp_login_url();
+                    update_post_meta($post_id, '_user_id', $user_id);
+                    update_post_meta($post_id, '_is_membership_order', '1');
+                    checkout_for_paypal_debug_log("Existing user found (ID: " . $user_id . "). Preserved user roles without alteration.", true);
+                }
+
+                // Create or update coforpaypal_member record
+                if(!empty($user_id)){
+                    $is_lifetime = (empty($duration_days) || $duration_days <= 0) ? '1' : '';
+                    $now = time();
+                    $expiry_timestamp = '';
+
+                    // Look for existing member record for this user & product
+                    $existing_member_query = new WP_Query(array(
+                        'post_type'      => 'coforpaypal_member',
+                        'post_status'    => 'publish',
+                        'posts_per_page' => 1,
+                        'meta_query'     => array(
+                            array(
+                                'key'     => '_coforpaypal_member_user_id',
+                                'value'   => $user_id,
+                                'compare' => '='
+                            ),
+                            array(
+                                'key'     => '_coforpaypal_member_product_id',
+                                'value'   => $product_id,
+                                'compare' => '='
+                            )
+                        )
+                    ));
+
+                    if($is_lifetime == '1'){
+                        $expiry_timestamp = '';
+                    } else {
+                        $duration_seconds = (int)$duration_days * 86400;
+                        if($existing_member_query->have_posts()){
+                            $existing_member_id = $existing_member_query->posts[0]->ID;
+                            $cur_expiry = get_post_meta($existing_member_id, '_coforpaypal_member_expiry_date', true);
+                            if(!empty($cur_expiry) && (int)$cur_expiry > $now){
+                                // Extend active membership
+                                $expiry_timestamp = (int)$cur_expiry + $duration_seconds;
+                            } else {
+                                $expiry_timestamp = $now + $duration_seconds;
+                            }
+                        } else {
+                            $expiry_timestamp = $now + $duration_seconds;
+                        }
+                    }
+
+                    // Determine default member status configured for this product
+                    $default_member_status = get_post_meta($product_id, '_coforpaypal_product_default_member_status', true);
+                    if(empty($default_member_status)){
+                        $default_member_status = 'active';
+                    }
+
+                    if($existing_member_query->have_posts()){
+                        $member_record_id = $existing_member_query->posts[0]->ID;
+                        update_post_meta($member_record_id, '_coforpaypal_member_status', $default_member_status);
+                        update_post_meta($member_record_id, '_coforpaypal_member_is_lifetime', $is_lifetime);
+                        if(!empty($expiry_timestamp)){
+                            update_post_meta($member_record_id, '_coforpaypal_member_expiry_date', $expiry_timestamp);
+                        } else {
+                            delete_post_meta($member_record_id, '_coforpaypal_member_expiry_date');
+                        }
+                        update_post_meta($member_record_id, '_coforpaypal_member_order_id', $post_id);
+                        checkout_for_paypal_debug_log("Updated existing member record ID: " . $member_record_id . " with status: " . $default_member_status, true);
+                    } else {
+                        $member_post = array(
+                            'post_title'  => $payment_data['given_name'] . ' ' . $payment_data['surname'],
+                            'post_type'   => 'coforpaypal_member',
+                            'post_status' => 'publish'
+                        );
+                        $member_record_id = wp_insert_post($member_post);
+                        if(!is_wp_error($member_record_id) && $member_record_id > 0){
+                            wp_update_post(array(
+                                'ID'         => $member_record_id,
+                                'post_title' => $payment_data['given_name'] . ' ' . $payment_data['surname'] . ' (#' . $member_record_id . ')'
+                            ));
+                            update_post_meta($member_record_id, '_coforpaypal_member_user_id', $user_id);
+                            update_post_meta($member_record_id, '_coforpaypal_member_email', $user_email);
+                            update_post_meta($member_record_id, '_coforpaypal_member_product_id', $product_id);
+                            update_post_meta($member_record_id, '_coforpaypal_member_is_lifetime', $is_lifetime);
+                            if(!empty($expiry_timestamp)){
+                                update_post_meta($member_record_id, '_coforpaypal_member_expiry_date', $expiry_timestamp);
+                            }
+                            update_post_meta($member_record_id, '_coforpaypal_member_status', $default_member_status);
+                            update_post_meta($member_record_id, '_coforpaypal_member_order_id', $post_id);
+                            checkout_for_paypal_debug_log("Created new member record ID: " . $member_record_id . " with status: " . $default_member_status, true);
+                        }
+                    }
+
+                    if(!empty($member_record_id)){
+                        update_post_meta($post_id, '_member_record_id', $member_record_id);
+                    }
+
+                    // Format expiry date for email
+                    if(!empty($expiry_timestamp)){
+                        $date_format = get_option('date_format');
+                        $payment_data['expiry_date'] = date_i18n($date_format, $expiry_timestamp);
+                    } else {
+                        $payment_data['expiry_date'] = __('Never (Lifetime)', 'checkout-for-paypal');
+                    }
+
+                    $membership_options = checkout_for_paypal_get_membership_option();
+
+                    // Send email based on whether user is new or existing
+                    if($is_new_user){
+                        $new_user_email_enabled = isset($membership_options['new_user_email_enabled']) ? $membership_options['new_user_email_enabled'] : (isset($membership_options['membership_email_enabled']) ? $membership_options['membership_email_enabled'] : '');
+                        if(!empty($new_user_email_enabled)){
+                            $subject = isset($membership_options['new_user_email_subject']) ? $membership_options['new_user_email_subject'] : (isset($membership_options['membership_email_subject']) ? $membership_options['membership_email_subject'] : '');
+                            $type = isset($membership_options['new_user_email_type']) ? $membership_options['new_user_email_type'] : (isset($membership_options['membership_email_type']) ? $membership_options['membership_email_type'] : 'plain');
+                            $body = isset($membership_options['new_user_email_body']) ? $membership_options['new_user_email_body'] : (isset($membership_options['membership_email_body']) ? $membership_options['membership_email_body'] : '');
+                            $body = checkout_for_paypal_do_email_tags($payment_data, $body);
+                            if($type == "html"){
+                                add_filter('wp_mail_content_type', 'checkout_for_paypal_set_html_email_content_type');
+                                $body = apply_filters('checkout_for_paypal_email_body_wpautop', true) ? wpautop($body) : $body;
+                            }
+                            checkout_for_paypal_debug_log("Sending new member account email to " . $payment_data['payer_email'], true);
+                            $mail_sent = wp_mail($payment_data['payer_email'], $subject, $body);
+                            if($type == "html"){
+                                remove_filter('wp_mail_content_type', 'checkout_for_paypal_set_html_email_content_type');
+                            }
+                            if($mail_sent == true){
+                                checkout_for_paypal_debug_log("New member account email sent successfully by WordPress", true);
+                            } else {
+                                checkout_for_paypal_debug_log("New member account email could not be sent by WordPress", false);
+                            }
+                        }
+                    } else {
+                        // Existing user payment email
+                        $existing_user_email_enabled = isset($membership_options['existing_user_email_enabled']) ? $membership_options['existing_user_email_enabled'] : (isset($membership_options['existing_member_email_enabled']) ? $membership_options['existing_member_email_enabled'] : '');
+                        if(!empty($existing_user_email_enabled)){
+                            $subject = isset($membership_options['existing_user_email_subject']) ? $membership_options['existing_user_email_subject'] : (isset($membership_options['existing_member_email_subject']) ? $membership_options['existing_member_email_subject'] : '');
+                            $type = isset($membership_options['existing_user_email_type']) ? $membership_options['existing_user_email_type'] : (isset($membership_options['existing_member_email_type']) ? $membership_options['existing_member_email_type'] : 'plain');
+                            $body = isset($membership_options['existing_user_email_body']) ? $membership_options['existing_user_email_body'] : (isset($membership_options['existing_member_email_body']) ? $membership_options['existing_member_email_body'] : '');
+                            $body = checkout_for_paypal_do_email_tags($payment_data, $body);
+                            if($type == "html"){
+                                add_filter('wp_mail_content_type', 'checkout_for_paypal_set_html_email_content_type');
+                                $body = apply_filters('checkout_for_paypal_email_body_wpautop', true) ? wpautop($body) : $body;
+                            }
+                            checkout_for_paypal_debug_log("Sending existing member payment email to " . $payment_data['payer_email'], true);
+                            $mail_sent = wp_mail($payment_data['payer_email'], $subject, $body);
+                            if($type == "html"){
+                                remove_filter('wp_mail_content_type', 'checkout_for_paypal_set_html_email_content_type');
+                            }
+                            if($mail_sent == true){
+                                checkout_for_paypal_debug_log("Existing member payment email sent successfully by WordPress", true);
+                            } else {
+                                checkout_for_paypal_debug_log("Existing member payment email could not be sent by WordPress", false);
+                            }
+                        }
+                    }
+
+                    // If membership was created/updated directly with 'active' status, send the Active Notification email
+                    if($default_member_status === 'active' && !empty($member_record_id)){
+                        checkout_for_paypal_send_membership_active_email($member_record_id);
+                    }
+                }
+            }
+        }
+
         $order_details_data['post_order_id'] = $post_id;
         do_action('checkout_for_paypal_order_processed', $order_details_data);
     } else {
@@ -1037,3 +1256,224 @@ EOT;
     
     return $button_code;
 }
+
+/**
+ * Replace placeholder tags in membership restriction messages
+ */
+function checkout_for_paypal_render_protection_message($template_msg, $product_id = '', $expiry = 0) {
+    $login_url = wp_login_url(get_permalink());
+    $product_name = '';
+    $checkout_button = '';
+    $date_format = get_option('date_format') . ' ' . get_option('time_format');
+    $expiry_date_str = !empty($expiry) ? date_i18n($date_format, $expiry) : __('Never (Lifetime)', 'checkout-for-paypal');
+
+    if (!empty($product_id)) {
+        $product = checkout_for_paypal_get_product($product_id);
+        if ($product) {
+            $product_name = $product['title'];
+            $checkout_button = checkout_for_paypal_product_button_handler(array('id' => $product_id));
+        }
+    }
+
+    $search = array('{login_url}', '{expiry_date}', '{product_id}', '{product_name}', '{checkout_button}');
+    $replace = array($login_url, $expiry_date_str, $product_id, $product_name, $checkout_button);
+
+    return str_replace($search, $replace, $template_msg);
+}
+
+/**
+ * Shortcode to protect content: [coforpaypal_protected product_id="123"]content[/coforpaypal_protected]
+ */
+function checkout_for_paypal_protected_content_handler($atts, $content = null) {
+    $atts = shortcode_atts(array(
+        'product_id' => '',
+    ), $atts, 'coforpaypal_protected');
+
+    $product_id = sanitize_text_field($atts['product_id']);
+    $membership_options = checkout_for_paypal_get_membership_option();
+
+    // Check if user is logged in
+    if (!is_user_logged_in()) {
+        $msg = !empty($membership_options['msg_login_required']) 
+            ? $membership_options['msg_login_required'] 
+            : __('<p class="coforpaypal-msg coforpaypal-msg-login">You must be logged in to access this content. Please <a href="{login_url}">log in here</a>.</p>', 'checkout-for-paypal');
+        return checkout_for_paypal_render_protection_message($msg, $product_id);
+    }
+
+    $current_user_id = get_current_user_id();
+
+    // Administrators always have full access
+    if (current_user_can('manage_options')) {
+        return do_shortcode($content);
+    }
+
+    $check = checkout_for_paypal_check_user_membership($current_user_id, $product_id);
+
+    if ($check['status'] === 'active') {
+        return do_shortcode($content);
+    } elseif ($check['status'] === 'pending') {
+        $msg = !empty($membership_options['msg_membership_pending']) 
+            ? $membership_options['msg_membership_pending'] 
+            : __('<p class="coforpaypal-msg coforpaypal-msg-pending">Your membership account is pending approval or activation. You will receive an email once your account becomes active.</p>', 'checkout-for-paypal');
+        return checkout_for_paypal_render_protection_message($msg, $product_id);
+    } elseif ($check['status'] === 'expired') {
+        $msg = !empty($membership_options['msg_membership_expired']) 
+            ? $membership_options['msg_membership_expired'] 
+            : __('<p class="coforpaypal-msg coforpaypal-msg-expired">Your membership has expired. Please repurchase or renew to regain access.</p>', 'checkout-for-paypal');
+        return checkout_for_paypal_render_protection_message($msg, $product_id, $check['expiry']);
+    } else {
+        $msg = !empty($membership_options['msg_access_denied']) 
+            ? $membership_options['msg_access_denied'] 
+            : __('<p class="coforpaypal-msg coforpaypal-msg-denied">Access Denied: You do not have an active membership for this content.</p>', 'checkout-for-paypal');
+        return checkout_for_paypal_render_protection_message($msg, $product_id);
+    }
+}
+
+/**
+ * Page & Post Level Membership Protection Meta Box
+ */
+function checkout_for_paypal_add_content_protection_meta_box() {
+    $post_types = get_post_types(array('public' => true), 'names');
+    foreach ($post_types as $post_type) {
+        if (in_array($post_type, array('coforpaypal_order', 'coforpaypal_product', 'coforpaypal_member', 'attachment'))) {
+            continue;
+        }
+        add_meta_box(
+            'coforpaypal_content_protection',
+            __('Checkout for PayPal: Membership Protection', 'checkout-for-paypal'),
+            'checkout_for_paypal_render_content_protection_meta_box',
+            $post_type,
+            'side',
+            'default'
+        );
+    }
+}
+add_action('add_meta_boxes', 'checkout_for_paypal_add_content_protection_meta_box');
+
+function checkout_for_paypal_render_content_protection_meta_box($post) {
+    $protect = get_post_meta($post->ID, '_coforpaypal_protect_page', true);
+    $required_product = get_post_meta($post->ID, '_coforpaypal_protect_product_id', true);
+
+    wp_nonce_field(basename(__FILE__), 'coforpaypal_content_protection_nonce');
+    ?>
+    <p>
+        <label for="_coforpaypal_protect_page">
+            <input name="_coforpaypal_protect_page" type="checkbox" id="_coforpaypal_protect_page" value="1" <?php checked($protect, '1'); ?>>
+            <strong><?php _e('Protect this content', 'checkout-for-paypal'); ?></strong>
+        </label>
+    </p>
+    <div id="coforpaypal_protect_options" style="<?php echo ($protect == '1') ? '' : 'display:none;'; ?>">
+        <p>
+            <label for="_coforpaypal_protect_product_id"><strong><?php _e('Required Membership Level:', 'checkout-for-paypal'); ?></strong></label><br>
+            <select name="_coforpaypal_protect_product_id" id="_coforpaypal_protect_product_id" style="width:100%;">
+                <option value=""><?php _e('-- Any Active Membership --', 'checkout-for-paypal'); ?></option>
+                <?php
+                $products = get_posts(array(
+                    'post_type'      => 'coforpaypal_product',
+                    'posts_per_page' => -1,
+                    'post_status'    => 'publish'
+                ));
+                foreach ($products as $prod) {
+                    $selected = ($prod->ID == $required_product) ? 'selected="selected"' : '';
+                    echo '<option value="' . esc_attr($prod->ID) . '" ' . $selected . '>' . esc_html($prod->post_title) . ' (#' . $prod->ID . ')</option>';
+                }
+                ?>
+            </select>
+        </p>
+        <p class="description"><?php _e('Only members with an active status for this product can view this page.', 'checkout-for-paypal'); ?></p>
+    </div>
+    <script>
+    jQuery(document).ready(function($) {
+        $('#_coforpaypal_protect_page').on('change', function() {
+            if ($(this).is(':checked')) {
+                $('#coforpaypal_protect_options').show();
+            } else {
+                $('#coforpaypal_protect_options').hide();
+            }
+        });
+    });
+    </script>
+    <?php
+}
+
+function checkout_for_paypal_save_content_protection_meta_box($post_id, $post) {
+    if (!isset($_POST['coforpaypal_content_protection_nonce']) || !wp_verify_nonce($_POST['coforpaypal_content_protection_nonce'], basename(__FILE__))) {
+        return;
+    }
+    if ((defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) || (defined('DOING_AJAX') && DOING_AJAX) || isset($_REQUEST['bulk_edit'])) {
+        return;
+    }
+    if (isset($post->post_type) && 'revision' == $post->post_type) {
+        return;
+    }
+    if (!current_user_can('edit_post', $post_id)) {
+        return;
+    }
+
+    $protect = (isset($_POST['_coforpaypal_protect_page']) && $_POST['_coforpaypal_protect_page'] == '1') ? '1' : '';
+    update_post_meta($post_id, '_coforpaypal_protect_page', $protect);
+
+    if (isset($_POST['_coforpaypal_protect_product_id'])) {
+        update_post_meta($post_id, '_coforpaypal_protect_product_id', sanitize_text_field($_POST['_coforpaypal_protect_product_id']));
+    }
+}
+add_action('save_post', 'checkout_for_paypal_save_content_protection_meta_box', 10, 2);
+
+/**
+ * Filter the content for page-level protected posts/pages
+ */
+function checkout_for_paypal_filter_protected_content($content) {
+    if (is_admin() || is_feed()) {
+        return $content;
+    }
+
+    global $post;
+    if (!is_a($post, 'WP_Post')) {
+        return $content;
+    }
+
+    $is_protected = get_post_meta($post->ID, '_coforpaypal_protect_page', true);
+    if ($is_protected != '1') {
+        return $content;
+    }
+
+    // Administrators always have full access
+    if (current_user_can('manage_options')) {
+        return $content;
+    }
+
+    $required_product_id = get_post_meta($post->ID, '_coforpaypal_protect_product_id', true);
+    $membership_options = checkout_for_paypal_get_membership_option();
+
+    // Check if user is logged in
+    if (!is_user_logged_in()) {
+        $msg = !empty($membership_options['msg_login_required']) 
+            ? $membership_options['msg_login_required'] 
+            : __('<p class="coforpaypal-msg coforpaypal-msg-login">You must be logged in to access this content. Please <a href="{login_url}">log in here</a>.</p>', 'checkout-for-paypal');
+        return checkout_for_paypal_render_protection_message($msg, $required_product_id);
+    }
+
+    $current_user_id = get_current_user_id();
+    $check = checkout_for_paypal_check_user_membership($current_user_id, $required_product_id);
+
+    if ($check['status'] === 'active') {
+        return $content;
+    } elseif ($check['status'] === 'pending') {
+        $msg = !empty($membership_options['msg_membership_pending']) 
+            ? $membership_options['msg_membership_pending'] 
+            : __('<p class="coforpaypal-msg coforpaypal-msg-pending">Your membership account is pending approval or activation. You will receive an email once your account becomes active.</p>', 'checkout-for-paypal');
+        return checkout_for_paypal_render_protection_message($msg, $required_product_id);
+    } elseif ($check['status'] === 'expired') {
+        $msg = !empty($membership_options['msg_membership_expired']) 
+            ? $membership_options['msg_membership_expired'] 
+            : __('<p class="coforpaypal-msg coforpaypal-msg-expired">Your membership has expired. Please repurchase or renew to regain access.</p>', 'checkout-for-paypal');
+        return checkout_for_paypal_render_protection_message($msg, $required_product_id, $check['expiry']);
+    } else {
+        $msg = !empty($membership_options['msg_access_denied']) 
+            ? $membership_options['msg_access_denied'] 
+            : __('<p class="coforpaypal-msg coforpaypal-msg-denied">Access Denied: You do not have an active membership for this content.</p>', 'checkout-for-paypal');
+        return checkout_for_paypal_render_protection_message($msg, $required_product_id);
+    }
+}
+add_filter('the_content', 'checkout_for_paypal_filter_protected_content', 99);
+

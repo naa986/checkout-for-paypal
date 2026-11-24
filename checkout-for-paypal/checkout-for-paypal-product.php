@@ -133,6 +133,15 @@ function checkout_for_paypal_render_product_details_meta_box($post) {
     if(!isset($button_image) || empty($button_image)){
         $button_image = '';
     }
+    $is_membership = get_post_meta($post_id, '_coforpaypal_product_is_membership', true);
+    $membership_role = get_post_meta($post_id, '_coforpaypal_product_membership_role', true);
+    if(empty($membership_role)){
+        $membership_role = 'subscriber';
+    }
+    $membership_duration = get_post_meta($post_id, '_coforpaypal_product_membership_duration', true);
+    if(!isset($membership_duration)){
+        $membership_duration = '';
+    }
     
     wp_nonce_field(basename(__FILE__), 'coforpaypal_product_details_meta_box_nonce');
     ?>
@@ -178,8 +187,87 @@ function checkout_for_paypal_render_product_details_meta_box($post) {
                     <p class="description"><?php _e('The URL of the image that will act as the payment button (optional). This replaces the plain payment button.', 'checkout-for-paypal'); ?></p>
                 </td>
             </tr>
+
+            <tr valign="top">
+                <th scope="row">
+                    <?php _e('Membership / User Registration', 'checkout-for-paypal'); ?>
+                </th>
+                <td>
+                    <fieldset>
+                        <label for="_coforpaypal_product_is_membership">
+                            <input name="_coforpaypal_product_is_membership" type="checkbox" id="_coforpaypal_product_is_membership" value="1" <?php checked($is_membership, '1'); ?>>
+                            <?php _e('Enable Membership Registration for this product', 'checkout-for-paypal'); ?>
+                        </label>
+                        <p class="description"><?php _e('When enabled, a WordPress user account and member record will be created automatically for the customer upon successful payment.', 'checkout-for-paypal'); ?></p>
+                    </fieldset>
+                </td>
+            </tr>
+
+            <tr valign="top" class="coforpaypal_membership_settings_row" style="<?php echo ($is_membership == '1') ? '' : 'display:none;'; ?>">
+                <th scope="row">
+                    <label for="_coforpaypal_product_membership_role"><?php _e('Membership Role', 'checkout-for-paypal'); ?></label>
+                </th>
+                <td>
+                    <select name="_coforpaypal_product_membership_role" id="_coforpaypal_product_membership_role">
+                        <?php
+                        $editable_roles = function_exists('get_editable_roles') ? get_editable_roles() : array();
+                        if (empty($editable_roles)) {
+                            global $wp_roles;
+                            if (isset($wp_roles->roles)) {
+                                $editable_roles = $wp_roles->roles;
+                            }
+                        }
+                        foreach ($editable_roles as $role_key => $role_data) {
+                            $selected = ($role_key === $membership_role) ? 'selected="selected"' : '';
+                            echo '<option value="' . esc_attr($role_key) . '" ' . $selected . '>' . esc_html(translate_user_role($role_data['name'])) . ' (' . esc_html($role_key) . ')</option>';
+                        }
+                        ?>
+                    </select>
+                    <p class="description"><?php _e('Select the WordPress user role assigned to a newly created member upon checkout (only applied to new user accounts; existing users will not have their roles altered).', 'checkout-for-paypal'); ?></p>
+                </td>
+            </tr>
+
+            <tr valign="top" class="coforpaypal_membership_settings_row" style="<?php echo ($is_membership == '1') ? '' : 'display:none;'; ?>">
+                <th scope="row">
+                    <label for="_coforpaypal_product_default_member_status"><?php _e('Default Membership Status', 'checkout-for-paypal'); ?></label>
+                </th>
+                <td>
+                    <?php
+                    $default_member_status = get_post_meta($post_id, '_coforpaypal_product_default_member_status', true);
+                    if (empty($default_member_status)) {
+                        $default_member_status = 'active';
+                    }
+                    ?>
+                    <select name="_coforpaypal_product_default_member_status" id="_coforpaypal_product_default_member_status">
+                        <option value="active" <?php selected($default_member_status, 'active'); ?>><?php _e('Active', 'checkout-for-paypal'); ?></option>
+                        <option value="pending" <?php selected($default_member_status, 'pending'); ?>><?php _e('Pending', 'checkout-for-paypal'); ?></option>
+                    </select>
+                    <p class="description"><?php _e('Choose the default status when a member purchases this product. If "Pending" is chosen, the member cannot access protected content until their membership is switched to "Active" by an administrator.', 'checkout-for-paypal'); ?></p>
+                </td>
+            </tr>
+
+            <tr valign="top" class="coforpaypal_membership_settings_row" style="<?php echo ($is_membership == '1') ? '' : 'display:none;'; ?>">
+                <th scope="row">
+                    <label for="_coforpaypal_product_membership_duration"><?php _e('Membership Duration (in days)', 'checkout-for-paypal'); ?></label>
+                </th>
+                <td>
+                    <input name="_coforpaypal_product_membership_duration" type="number" min="0" step="1" id="_coforpaypal_product_membership_duration" value="<?php echo esc_attr($membership_duration); ?>" class="small-text">
+                    <p class="description"><?php _e('Number of days this membership is valid for (e.g. 30, 365). Enter 0 or leave empty for lifetime (never expires).', 'checkout-for-paypal'); ?></p>
+                </td>
+            </tr>
         </tbody>
     </table>
+    <script>
+    jQuery(document).ready(function($) {
+        $('#_coforpaypal_product_is_membership').on('change', function() {
+            if ($(this).is(':checked')) {
+                $('.coforpaypal_membership_settings_row').show();
+            } else {
+                $('.coforpaypal_membership_settings_row').hide();
+            }
+        });
+    });
+    </script>
     <script>
     jQuery(document).ready(function($) {
         var mediaUploader;
@@ -243,6 +331,20 @@ function checkout_for_paypal_product_details_meta_box_save($post_id, $post) {
         $button_image = esc_url_raw($_POST['_coforpaypal_product_button_image']);
         update_post_meta($post_id, '_coforpaypal_product_button_image', $button_image);
     }
+    $is_membership = (isset($_POST['_coforpaypal_product_is_membership']) && $_POST['_coforpaypal_product_is_membership'] == '1') ? '1' : '';
+    update_post_meta($post_id, '_coforpaypal_product_is_membership', $is_membership);
+    if (isset($_POST['_coforpaypal_product_membership_role'])) {
+        $membership_role = sanitize_text_field($_POST['_coforpaypal_product_membership_role']);
+        update_post_meta($post_id, '_coforpaypal_product_membership_role', $membership_role);
+    }
+    if (isset($_POST['_coforpaypal_product_membership_duration'])) {
+        $membership_duration = sanitize_text_field($_POST['_coforpaypal_product_membership_duration']);
+        update_post_meta($post_id, '_coforpaypal_product_membership_duration', $membership_duration);
+    }
+    if (isset($_POST['_coforpaypal_product_default_member_status'])) {
+        $default_status = sanitize_text_field($_POST['_coforpaypal_product_default_member_status']);
+        update_post_meta($post_id, '_coforpaypal_product_default_member_status', $default_status);
+    }
 }
 
 add_action('save_post_coforpaypal_product', 'checkout_for_paypal_product_details_meta_box_save', 10, 2);
@@ -260,14 +362,28 @@ function checkout_for_paypal_get_product($product_id) {
     $shipping = get_post_meta($product_id, '_coforpaypal_product_shipping', true);
     $button_text = get_post_meta($product_id, '_coforpaypal_product_button_text', true);
     $button_image = get_post_meta($product_id, '_coforpaypal_product_button_image', true);
+    $is_membership = get_post_meta($product_id, '_coforpaypal_product_is_membership', true);
+    $membership_role = get_post_meta($product_id, '_coforpaypal_product_membership_role', true);
+    if(empty($membership_role)){
+        $membership_role = 'subscriber';
+    }
+    $membership_duration = get_post_meta($product_id, '_coforpaypal_product_membership_duration', true);
+    $default_member_status = get_post_meta($product_id, '_coforpaypal_product_default_member_status', true);
+    if(empty($default_member_status)){
+        $default_member_status = 'active';
+    }
 
     return array(
-        'id'          => $post->ID,
-        'title'       => get_the_title($post->ID),
-        'description' => $post->post_content,
-        'price'       => $price,
-        'shipping'    => $shipping,
-        'button_text' => $button_text,
-        'button_image' => $button_image
+        'id'                     => $post->ID,
+        'title'                  => get_the_title($post->ID),
+        'description'            => $post->post_content,
+        'price'                  => $price,
+        'shipping'               => $shipping,
+        'button_text'            => $button_text,
+        'button_image'           => $button_image,
+        'is_membership'          => $is_membership,
+        'membership_role'        => $membership_role,
+        'membership_duration'    => $membership_duration,
+        'default_member_status'  => $default_member_status
     );
 }
