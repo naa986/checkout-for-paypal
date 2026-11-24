@@ -1263,7 +1263,7 @@ EOT;
 function checkout_for_paypal_render_protection_message($template_msg, $product_id = '', $expiry = 0) {
     $login_url = wp_login_url(get_permalink());
     $product_name = '';
-    $checkout_button = '';
+    $product_button = '';
     $date_format = get_option('date_format') . ' ' . get_option('time_format');
     $expiry_date_str = !empty($expiry) ? date_i18n($date_format, $expiry) : __('Never (Lifetime)', 'checkout-for-paypal');
 
@@ -1271,12 +1271,12 @@ function checkout_for_paypal_render_protection_message($template_msg, $product_i
         $product = checkout_for_paypal_get_product($product_id);
         if ($product) {
             $product_name = $product['title'];
-            $checkout_button = checkout_for_paypal_product_button_handler(array('id' => $product_id));
+            $product_button = checkout_for_paypal_product_button_handler(array('id' => $product_id));
         }
     }
 
-    $search = array('{login_url}', '{expiry_date}', '{product_id}', '{product_name}', '{checkout_button}');
-    $replace = array($login_url, $expiry_date_str, $product_id, $product_name, $checkout_button);
+    $search = array('{login_url}', '{expiry_date}', '{product_id}', '{product_name}', '{product_button}');
+    $replace = array($login_url, $expiry_date_str, $product_id, $product_name, $product_button);
 
     return str_replace($search, $replace, $template_msg);
 }
@@ -1353,7 +1353,16 @@ add_action('add_meta_boxes', 'checkout_for_paypal_add_content_protection_meta_bo
 function checkout_for_paypal_render_content_protection_meta_box($post) {
     $protect = get_post_meta($post->ID, '_coforpaypal_protect_page', true);
     $required_product = get_post_meta($post->ID, '_coforpaypal_protect_product_id', true);
-
+    //
+    $products = get_posts(array(
+        'post_type'      => 'coforpaypal_product',
+        'posts_per_page' => -1,
+        'post_status'    => 'publish'
+    ));
+    if (empty($products)) {
+        return _e('No products found.', 'checkout-for-paypal');
+    }
+    //
     wp_nonce_field(basename(__FILE__), 'coforpaypal_content_protection_nonce');
     ?>
     <p>
@@ -1366,13 +1375,8 @@ function checkout_for_paypal_render_content_protection_meta_box($post) {
         <p>
             <label for="_coforpaypal_protect_product_id"><strong><?php _e('Required Membership Level:', 'checkout-for-paypal'); ?></strong></label><br>
             <select name="_coforpaypal_protect_product_id" id="_coforpaypal_protect_product_id" style="width:100%;">
-                <option value=""><?php _e('-- Any Active Membership --', 'checkout-for-paypal'); ?></option>
+                <!--<option value=""><?php _e('Any Active Membership', 'checkout-for-paypal'); ?></option>-->
                 <?php
-                $products = get_posts(array(
-                    'post_type'      => 'coforpaypal_product',
-                    'posts_per_page' => -1,
-                    'post_status'    => 'publish'
-                ));
                 foreach ($products as $prod) {
                     $selected = ($prod->ID == $required_product) ? 'selected="selected"' : '';
                     echo '<option value="' . esc_attr($prod->ID) . '" ' . $selected . '>' . esc_html($prod->post_title) . ' (#' . $prod->ID . ')</option>';

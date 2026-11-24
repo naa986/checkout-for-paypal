@@ -114,7 +114,7 @@ function checkout_for_paypal_set_default_membership_options(){
         $options['msg_membership_expired'] = __('<p>Your membership has expired.</p>', 'checkout-for-paypal');
     }
     if(empty($options['msg_membership_pending'])){
-        $options['msg_membership_pending'] = __('<p>Your membership account is pending approval or activation.</p>', 'checkout-for-paypal');
+        $options['msg_membership_pending'] = __('<p>Your membership account is pending approval.</p>', 'checkout-for-paypal');
     }
     if(empty($options['msg_access_denied'])){
         $options['msg_access_denied'] = __('<p>You do not have an active membership for this content.</p>', 'checkout-for-paypal');

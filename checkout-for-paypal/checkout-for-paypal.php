@@ -1,7 +1,7 @@
 <?php
 /*
   Plugin Name: Checkout for PayPal
-  Version: 1.0.49
+  Version: 1.0.50
   Plugin URI: https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/  
   Author: naa986
   Author URI: https://noorsplugin.com/
@@ -18,8 +18,8 @@ if (!class_exists('CHECKOUT_FOR_PAYPAL')) {
     
     class CHECKOUT_FOR_PAYPAL {
 
-        var $plugin_version = '1.0.49';
-        var $db_version = '1.0.3';
+        var $plugin_version = '1.0.50';
+        var $db_version = '1.0.4';
         var $plugin_url;
         var $plugin_path;
 
@@ -864,7 +864,7 @@ if (!class_exists('CHECKOUT_FOR_PAYPAL')) {
                                             <th scope="row"><label for="msg_membership_expired"><?php _e('Membership Expired Message', 'checkout-for-paypal'); ?></label></th>
                                             <td>
                                                 <?php wp_editor($options['msg_membership_expired'], 'msg_membership_expired', array('textarea_name' => 'msg_membership_expired', 'textarea_rows' => 4)); ?>
-                                                <p class="description"><?php _e('Displayed when a logged-in user whose membership has expired attempts to view protected content. Available tags: {expiry_date}, {product_id}, {product_name}, {checkout_button}', 'checkout-for-paypal'); ?></p>
+                                                <p class="description"><?php _e('Displayed when a logged-in user whose membership has expired attempts to view protected content. Available tags: {expiry_date}, {product_id}, {product_name}, {product_button}', 'checkout-for-paypal'); ?></p>
                                             </td>
                                         </tr>
                                         <tr valign="top">
@@ -881,14 +881,14 @@ if (!class_exists('CHECKOUT_FOR_PAYPAL')) {
                                             <th scope="row"><label for="msg_access_denied"><?php _e('No Membership / Access Denied Message', 'checkout-for-paypal'); ?></label></th>
                                             <td>
                                                 <?php wp_editor($options['msg_access_denied'], 'msg_access_denied', array('textarea_name' => 'msg_access_denied', 'textarea_rows' => 4)); ?>
-                                                <p class="description"><?php _e('Displayed when a logged-in user who does not hold the required membership level views protected content. Available tags: {product_id}, {product_name}, {checkout_button}', 'checkout-for-paypal'); ?></p>
+                                                <p class="description"><?php _e('Displayed when a logged-in user who does not hold the required membership level views protected content. Available tags: {product_id}, {product_name}, {product_button}', 'checkout-for-paypal'); ?></p>
                                             </td>
                                         </tr>
                                     </tbody>
                                 </table>
 
-                                <h2><?php _e('Membership / User Account Email (New Users)', 'checkout-for-paypal'); ?></h2>
-                                <p><?php _e('This email is sent to newly created members after completing payment, delivering their generated login credentials.', 'checkout-for-paypal'); ?></p>
+                                <h2><?php _e('New User Account Email', 'checkout-for-paypal'); ?></h2>
+                                <p><?php _e('This email is sent to newly created users after completing a membership payment.', 'checkout-for-paypal'); ?></p>
 
                                 <table class="form-table">
                                     <tbody>
@@ -943,8 +943,8 @@ if (!class_exists('CHECKOUT_FOR_PAYPAL')) {
                                     </tbody>
                                 </table>
 
-                                <h2><?php _e('Existing User Membership Payment Email', 'checkout-for-paypal'); ?></h2>
-                                <p><?php _e('This email is sent to users who already had an account when purchasing a membership product (does not include password).', 'checkout-for-paypal'); ?></p>
+                                <h2><?php _e('Existing User Account Email', 'checkout-for-paypal'); ?></h2>
+                                <p><?php _e('This email is sent to users who already had an account when purchasing a membership product.', 'checkout-for-paypal'); ?></p>
 
                                 <table class="form-table">
                                     <tbody>
@@ -1053,9 +1053,9 @@ if (!class_exists('CHECKOUT_FOR_PAYPAL')) {
                             <div style="background: #ffc; border: 1px solid #333; margin: 2px; padding: 3px 15px">
                                 <h3><?php _e('How to Protect Content', 'checkout-for-paypal'); ?></h3>
                                 <p><strong><?php _e('1. Page-Level Protection:', 'checkout-for-paypal'); ?></strong><br>
-                                <?php _e('When editing any Page or Post, use the "Membership Protection" meta box to restrict the entire page.', 'checkout-for-paypal'); ?></p>
-                                <p><strong><?php _e('2. Shortcode Protection:', 'checkout-for-paypal'); ?></strong><br>
-                                <code>[coforpaypal_protected product_id="123"]<?php _e('Member-only content here', 'checkout-for-paypal'); ?>[/coforpaypal_protected]</code></p>
+                                <?php _e('When editing any Page or Post, use the "Membership Protection" box to restrict the entire page.', 'checkout-for-paypal'); ?></p>
+                                <!--<p><strong><?php _e('2. Shortcode Protection:', 'checkout-for-paypal'); ?></strong><br>
+                                <code>[coforpaypal_protected product_id="123"]<?php _e('Member-only content here', 'checkout-for-paypal'); ?>[/coforpaypal_protected]</code></p>-->
                             </div>
                         </td>
                     </tr>

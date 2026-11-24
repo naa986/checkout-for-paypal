@@ -1,18 +1,20 @@
 === Checkout for PayPal ===
 Contributors: naa986
 Donate link: https://noorsplugin.com/
-Tags: paypal, credit card, ecommerce, payment, payments
+Tags: paypal, membership, user, ecommerce, login
 Requires at least: 5.5
 Tested up to: 7.1
-Stable tag: 1.0.49
+Stable tag: 1.0.50
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Accept PayPal payments on WordPress with a simple PayPal Checkout integration. No shopping cart or WooCommerce required.
+Accept PayPal payments and sell WordPress memberships with PayPal Checkout. Protect pages, manage members, and accept payments without WooCommerce.
 
 == Description ==
 
-[Checkout for PayPal](https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/) is a lightweight WordPress PayPal plugin that lets you accept payments directly through PayPal's Checkout API.
+[Checkout for PayPal](https://noorsplugin.com/checkout-for-paypal-wordpress-plugin/) is a lightweight WordPress PayPal plugin and membership solution that lets you accept PayPal and credit card payments directly through PayPal's Checkout API (no shopping cart or WooCommerce required).
+
+It gives you everything you need whether you want to add a simple PayPal Buy Now button for a single product, accept donations and service payments, or build a paid membership site with restricted content.
 
 === Checkout for PayPal Add-ons ===
 
@@ -20,39 +22,56 @@ Accept PayPal payments on WordPress with a simple PayPal Checkout integration. N
 * [Contact Form 7 Integration](https://noorsplugin.com/checkout-for-paypal-integration-with-contact-form-7/)
 * [Order Export](https://noorsplugin.com/checkout-for-paypal-order-export/)
 
-=== Features ===
+=== PayPal Checkout & Credit Cards ===
 
-* **PayPal Checkout** – Accept payments securely through PayPal Checkout directly from your WordPress website.
-* **Accept PayPal Payments** – Let customers pay with PayPal without requiring a traditional shopping cart.
-* **No WooCommerce Required** – Add PayPal payment functionality without installing WooCommerce.
-* **No Shopping Cart Required** – Ideal for single products, services, bookings, donations, and other direct-payment use cases.
-* **Payment Buttons** – Add a payment button to pages, posts, and landing pages.
-* **PayPal Checkout API** – Uses PayPal's Checkout/Orders API to create and process PayPal orders.
-* **Secure Payment Processing** – Payment details are handled by PayPal rather than stored on your WordPress website.
-* **PayPal Sandbox Support** – Test your integration using PayPal's sandbox environment before accepting live payments.
-* **Live and Sandbox Environments** – Easily configure the plugin for either PayPal testing or live transactions.
-* **Simple Configuration** – Configure your PayPal payment settings from the WordPress admin area.
-* **Responsive Checkout** – Provide a PayPal checkout experience that works across desktop and mobile devices.
-* **Lightweight Payment Solution** – Add PayPal payments without the overhead of a complete ecommerce system.
-* **Developer-Friendly Integration** – Built around PayPal's APIs for reliable integration with WordPress.
-* **Custom Amounts** – Accept fixed or variable payment amounts using Variable Price add-on.
+Accept PayPal and credit/debit card payments securely through PayPal's Checkout/Orders API.
+
+=== Built-in WordPress Membership System ===
+
+Turn any product into a paid membership with automatic WordPress user account creation, role assignment, and isolated member management.
+
+=== Content Protection & Paywall === 
+
+Restrict access to entire pages/posts via the editor box.
+
+=== Membership Expiration & Renewals ===
+
+Set fixed-duration memberships (e.g., 30 days, 365 days) or lifetime access. Expired members automatically lose access and see customizable renewal messages.
+
+=== Customizable Paywall Messages & Emails ===
+
+Configure distinct messages for logged-out visitors, pending accounts, and expired memberships. You can also set automated emails for new users, existing users, and membership activations.
+
+=== No WooCommerce or Shopping Cart Required ===
+
+Add PayPal payment buttons and paid memberships without the bloat of a full ecommerce platform.
+
+=== Product & Order Management ===
+
+Create products with custom prices, button styles, and membership settings. View all PayPal orders and linked WordPress users from your dashboard.
+
+=== PayPal Sandbox Support ===
+
+Test your PayPal Checkout and membership flows safely in PayPal's sandbox environment before going live.
+
+=== Responsive & Lightweight ===
+
+Works seamlessly across desktop and mobile devices without slowing down your WordPress site.
 
 === How to Use the Plugin ===
 
-1. Navigate to plugin settings (Checkout for PayPal > Settings) and fill in all required fields (API keys, Page URLs, Currency).
-2. Open checkout page to make sure it contains this shortcode: `[coforpaypal_checkout]`
-3. Create a Product (Checkout for PayPal > Products)
-4. Create a Buy Now button for a product by adding this shortcode to a page: `[coforpaypal_product id="1"]`
+1. Navigate to **Checkout for PayPal > Settings** and configure your PayPal API keys, currency, and return/cancel page URLs.
+2. Open your checkout page and ensure it contains the `[coforpaypal_checkout]` shortcode.
+3. Go to **Checkout for PayPal > Products** to create a new product.
+4. Add a PayPal Buy Now button to any page or post using the shortcode: `[coforpaypal_product id="1"]` (replace `1` with your product ID).
 
-Note: You need to replace 1 with the actual product ID.
+=== How to Set Up Paid Memberships ===
 
-=== Elementor Page Builder Integration ===
-
-* Create a new page or **Edit with Elementor**.
-* From **Widgets** (Under **Elements**) select **Shortcode**.
-* Enter the Checkout for PayPal shortcode.
-* Click **Apply** to update changes to page.
-* Click **Publish**.
+1. Edit a product under **Checkout for PayPal > Products** and enable **Membership Product**.
+2. Choose the WordPress user role for new members, set the membership duration in days (or `0` for lifetime access), and select the default status (`Active` or `Pending`).
+3. Customize your paywall messages and membership emails under **Checkout for PayPal > Settings > Membership**.
+4. Protect content by enabling **Membership Protection** in the page/post editor sidebar.
+5. Manage members, statuses, and expiration dates anytime under **Checkout for PayPal > Members**.
 
 = Documentation =
 
@@ -75,15 +94,23 @@ If you are a non-English speaker please help translate Checkout for PayPal into 
 
 = Do I need a business PayPal account? =
 
-Yes, to use the PayPal Checkout API, you will need a free PayPal Business account.
+Yes. To use the PayPal Checkout API, you will need a free PayPal Business account.
 
 = Can I test payments before going live? =
 
-Absolutely — use PayPal's sandbox mode for safe testing.
+Yes, you can use PayPal's sandbox mode for safe testing.
 
 = Does it work with WooCommerce? =
 
-This plugin works independently. WooCommerce has its own PayPal integrations.
+This plugin works independently without WooCommerce. WooCommerce has its own PayPal integrations.
+
+= How do I protect pages or content for members only? =
+
+You can restrict an entire page or post using the "Checkout for PayPal: Membership Protection" box in the WordPress editor.
+
+= How do membership expirations work? =
+
+When creating a membership product, you can set a duration. Once a member's duration passes, their status changes to Expired.
 
 == Screenshots ==
 
@@ -96,6 +123,9 @@ This plugin works independently. WooCommerce has its own PayPal integrations.
 none
 
 == Changelog ==
+
+= 1.0.50 =
+* Added membership system.
 
 = 1.0.49 =
 * Added button image option for product.

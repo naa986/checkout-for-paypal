@@ -277,8 +277,8 @@ function checkout_for_paypal_pp_api_capture_order(){
     checkout_for_paypal_debug_log('Response data from retrieving order details', true);
     checkout_for_paypal_debug_log_array($order_details_data, true);
     //
-    do_action('checkout_for_paypal_process_v2_order', $capture_response_data, $order_details_data);
-    wp_send_json_success();  
+    //do_action('checkout_for_paypal_process_v2_order', $capture_response_data, $order_details_data);
+    wp_send_json_success();
 }
 
 function checkout_for_paypal_process_v2_order_handler($capture_response_data, $order_details_data)

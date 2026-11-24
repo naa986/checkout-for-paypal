@@ -68,7 +68,7 @@ function checkout_for_paypal_order_columns($columns) {
         'last_name'       => __('Last Name', 'checkout-for-paypal'),
         'email'           => __('Email', 'checkout-for-paypal'),
         'membership'      => __('Membership', 'checkout-for-paypal'),
-        'wp_user_id'      => __('WordPress User ID', 'checkout-for-paypal'),
+        'user_id'      => __('User ID', 'checkout-for-paypal'),
         'mc_gross'        => __('Total', 'checkout-for-paypal'),
         'payment_status'  => __('Payment Status', 'checkout-for-paypal'),
         'date'            => __('Date', 'checkout-for-paypal')
@@ -101,7 +101,7 @@ function checkout_for_paypal_custom_column($column, $post_id) {
                 echo '&#8212;';
             }
             break;
-        case 'wp_user_id' :
+        case 'user_id' :
             $user_id = get_post_meta($post_id, '_user_id', true);
             if (!empty($user_id)) {
                 $user = get_userdata($user_id);

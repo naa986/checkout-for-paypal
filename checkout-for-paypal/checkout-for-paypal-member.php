@@ -148,7 +148,11 @@ function checkout_for_paypal_get_member_status($member_post_id) {
     }
     $expiry = get_post_meta($member_post_id, '_coforpaypal_member_expiry_date', true);
     if (!empty($expiry)) {
-        return (time() <= (int)$expiry) ? 'active' : 'expired';
+        if (time() > (int)$expiry) {
+            update_post_meta($member_post_id, '_coforpaypal_member_status', 'expired');
+            return 'expired';
+        }
+        return 'active';
     }
     return 'active';
 }
@@ -173,17 +177,15 @@ function checkout_for_paypal_render_member_details_meta_box($post) {
     $is_lifetime = get_post_meta($post_id, '_coforpaypal_member_is_lifetime', true);
     $expiry_timestamp = get_post_meta($post_id, '_coforpaypal_member_expiry_date', true);
     $expiry_date_str = !empty($expiry_timestamp) ? date('Y-m-d\TH:i', (int)$expiry_timestamp) : '';
-    $status = get_post_meta($post_id, '_coforpaypal_member_status', true);
-    if (empty($status)) {
-        $status = 'active';
-    }
+    $effective_status = checkout_for_paypal_get_member_status($post_id);
+    $status = $effective_status;
 
     wp_nonce_field(basename(__FILE__), 'coforpaypal_member_details_meta_box_nonce');
     ?>
     <table class="form-table">
         <tbody>
             <tr valign="top">
-                <th scope="row"><label for="_coforpaypal_member_user_id"><?php _e('WordPress User ID', 'checkout-for-paypal'); ?></label></th>
+                <th scope="row"><label for="_coforpaypal_member_user_id"><?php _e('User ID', 'checkout-for-paypal'); ?></label></th>
                 <td>
                     <input name="_coforpaypal_member_user_id" type="number" id="_coforpaypal_member_user_id" value="<?php echo esc_attr($user_id); ?>" class="regular-text">
                     <?php if (!empty($user_id)) {
@@ -238,7 +240,7 @@ function checkout_for_paypal_render_member_details_meta_box($post) {
                 <th scope="row"><label for="_coforpaypal_member_expiry_date"><?php _e('Expiry Date & Time', 'checkout-for-paypal'); ?></label></th>
                 <td>
                     <input name="_coforpaypal_member_expiry_date" type="datetime-local" id="_coforpaypal_member_expiry_date" value="<?php echo esc_attr($expiry_date_str); ?>">
-                    <p class="description"><?php _e('Select when this membership expires. When expired, access to protected content will be revoked.', 'checkout-for-paypal'); ?></p>
+                    <p class="description"><?php _e('Select when this membership expires. When the current date/time passes this value, access automatically expires.', 'checkout-for-paypal'); ?></p>
                 </td>
             </tr>
 
@@ -248,9 +250,10 @@ function checkout_for_paypal_render_member_details_meta_box($post) {
                     <select name="_coforpaypal_member_status" id="_coforpaypal_member_status">
                         <option value="active" <?php selected($status, 'active'); ?>><?php _e('Active', 'checkout-for-paypal'); ?></option>
                         <option value="pending" <?php selected($status, 'pending'); ?>><?php _e('Pending', 'checkout-for-paypal'); ?></option>
-                        <option value="expired" <?php selected($status, 'expired'); ?>><?php _e('Expired (Force Expired)', 'checkout-for-paypal'); ?></option>
+                        <option value="expired" <?php selected($status, 'expired'); ?>><?php _e('Expired', 'checkout-for-paypal'); ?></option>
                         <option value="suspended" <?php selected($status, 'suspended'); ?>><?php _e('Suspended', 'checkout-for-paypal'); ?></option>
                     </select>
+                    <p class="description"><?php _e('If set to Active, the member has access unless their Expiry Date has passed. Selecting Expired manually blocks access regardless of expiry date.', 'checkout-for-paypal'); ?></p>
                 </td>
             </tr>
 
